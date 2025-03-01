@@ -127,6 +127,56 @@ To extend this starter kit:
 3. Export the new types in `main.ts`
 4. Update tests as needed
 
+## Environment Variables
+
+This library supports various environment variables for configuration:
+
+### General Configuration
+
+- `DENO_ENV` - Environment mode (development, production)
+- `NODE_ENV` - Node.js environment mode (for compatibility)
+
+### Library Configuration
+
+- `LIB_PORT` - Port for the HTTP/WebSocket server (default: 8000)
+- `LIB_HOST` - Host for the HTTP/WebSocket server (default: localhost)
+- `LIB_LOG_NAME` - Name for the logger output
+- `LIB_LOG_LEVEL` - Logging level (debug, verbose, info, warn, error)
+- `LIB_LOG_TAGS` - Comma-separated list of tags to include in logs
+
+### OpenTelemetry Configuration
+
+#### Core Settings
+
+- `OTEL_DENO` - Enable OpenTelemetry for Deno (true/false)
+- `OTEL_SERVICE_NAME` - Name of the service for telemetry
+- `OTEL_SERVICE_NAMESPACE` - Namespace for the service
+- `OTEL_SERVICE_VERSION` - Version of the service
+- `OTEL_RESOURCE_ATTRIBUTES` - Additional resource attributes
+
+#### Exporter Configuration
+
+- `OTEL_EXPORTER_TYPE` - Type of exporter (console, otlp)
+- `OTEL_EXPORTER_ENDPOINT` - Endpoint for the exporter
+- `OTEL_EXPORTER_PROTOCOL` - Protocol for the exporter
+- `OTEL_EXPORTER_TIMEOUT_MILLIS` - Timeout for the exporter in milliseconds
+
+#### Data Collection Settings
+
+- `OTEL_TRACE_ENABLED` - Enable trace collection
+- `OTEL_METRICS_ENABLED` - Enable metrics collection
+- `OTEL_LOGS_ENABLED` - Enable logs collection
+
+#### Sampling and Performance
+
+- `OTEL_SAMPLING_RATE` - Sampling rate for traces (0.0-1.0)
+- `OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT` - Maximum number of attributes per span
+- `OTEL_SPAN_EVENT_COUNT_LIMIT` - Maximum number of events per span
+- `OTEL_SPAN_LINK_COUNT_LIMIT` - Maximum number of links per span
+- `OTEL_TRACES_SAMPLER` - Sampling strategy
+
+You can copy the `.env.example` file to `.env` and customize these variables for your environment.
+
 ## License
 
 MIT
