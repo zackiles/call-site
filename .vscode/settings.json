@@ -1,0 +1,53 @@
+{
+  "deno.enable": true,
+  "deno.config": "./deno.jsonc",
+  "deno.importMap": "./deno.jsonc",
+  "deno.unstable": [
+    "cron",
+    "kv",
+    "webgpu",
+    "fs",
+    "otel"
+  ],
+  "deno.codeLens.implementations": true,
+  "deno.codeLens.references": true,
+  "deno.codeLens.referencesAllFunctions": true,
+  "deno.codeLens.test": true,
+  "deno.internalDebug": true,
+  "deno.internalInspect": true,
+  "deno.maxTsServerMemory": 6000,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "editor.detectIndentation": false,
+  "editor.indentSize": 2,
+  "editor.insertSpaces": true,
+  "editor.formatOnSave": true,
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "cSpell.dictionaries": [
+    "!typescript"
+  ],
+  "cSpell.words": [
+    "deno",
+    "typeof",
+    "zackiles",
+    "asynciterable",
+    "webgpu",
+    "Iles",
+    "onclose"
+  ],
+}
