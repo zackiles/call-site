@@ -1,3 +1,4 @@
+import { Logger } from './logger.ts'
 import type {
   CreateOptions,
   CreateResult,
@@ -9,6 +10,9 @@ import type {
   UpdateOptions,
   UpdateResult,
 } from './types.ts'
+
+// Create a logger for the Lib class
+const libLogger = Logger.get('lib')
 
 /**
  * Lib class provides core CRUD functionality
@@ -22,6 +26,7 @@ class Lib {
    */
   constructor(config: LibConfig = {}) {
     this.config = config
+    libLogger.debug('Lib instance created', { config })
   }
 
   /**
@@ -30,7 +35,7 @@ class Lib {
    * @returns The created data
    */
   create(data: CreateOptions): CreateResult {
-    console.log('Creating with config:', this.config)
+    libLogger.info('Creating resource', { config: this.config, data })
     return data
   }
 
@@ -40,7 +45,7 @@ class Lib {
    * @returns The queried data
    */
   read(query: ReadOptions): ReadResult {
-    console.log('Reading with config:', this.config)
+    libLogger.info('Reading resource', { config: this.config, query })
     return query
   }
 
@@ -50,7 +55,7 @@ class Lib {
    * @returns The updated data
    */
   update(data: UpdateOptions): UpdateResult {
-    console.log('Updating with config:', this.config)
+    libLogger.info('Updating resource', { config: this.config, data })
     return data
   }
 
@@ -60,7 +65,7 @@ class Lib {
    * @returns The deleted data
    */
   destroy(query: DestroyOptions): DestroyResult {
-    console.log('Destroying with config:', this.config)
+    libLogger.info('Destroying resource', { config: this.config, query })
     return query
   }
 }

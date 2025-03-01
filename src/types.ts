@@ -1,74 +1,34 @@
 /**
+ * Core type definitions for the library
+ */
+
+/**
  * Configuration options for the Lib class
  */
-interface LibConfig {
+export interface LibConfig {
   [key: string]: unknown
 }
 
 /**
- * Options for creating a resource
+ * Generic type for CRUD operation options
  */
-interface CreateOptions {
+export interface CrudOptions {
   [key: string]: unknown
 }
 
 /**
- * Result of creating a resource
+ * Generic type for CRUD operation results
  */
-interface CreateResult {
+export interface CrudResult {
   [key: string]: unknown
 }
 
-/**
- * Options for reading a resource
- */
-interface ReadOptions {
-  [key: string]: unknown
-}
-
-/**
- * Result of reading a resource
- */
-interface ReadResult {
-  [key: string]: unknown
-}
-
-/**
- * Options for updating a resource
- */
-interface UpdateOptions {
-  [key: string]: unknown
-}
-
-/**
- * Result of updating a resource
- */
-interface UpdateResult {
-  [key: string]: unknown
-}
-
-/**
- * Options for destroying a resource
- */
-interface DestroyOptions {
-  [key: string]: unknown
-}
-
-/**
- * Result of destroying a resource
- */
-interface DestroyResult {
-  [key: string]: unknown
-}
-
-export type {
-  CreateOptions,
-  CreateResult,
-  DestroyOptions,
-  DestroyResult,
-  LibConfig,
-  ReadOptions,
-  ReadResult,
-  UpdateOptions,
-  UpdateResult,
-}
+// Type aliases for semantic clarity in API
+export type CreateOptions = CrudOptions
+export type CreateResult = CrudResult
+export type ReadOptions = CrudOptions
+export type ReadResult = CrudResult
+export type UpdateOptions = CrudOptions
+export type UpdateResult = CrudResult
+export type DestroyOptions = CrudOptions
+export type DestroyResult = CrudResult

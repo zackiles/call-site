@@ -1,5 +1,6 @@
 import { parseArgs } from '@std/cli'
 import { Lib } from '../src/lib.ts'
+import { Logger } from '../src/logger.ts'
 import type {
   CreateOptions,
   CreateResult,
@@ -11,6 +12,9 @@ import type {
   UpdateResult,
 } from '../src/types.ts'
 
+// Create a logger for the CLI
+const cliLogger = Logger.get('cli')
+
 // Get package info from deno.json
 let VERSION = '0.0.1'
 let NAME = '@zackiles/starter-lib'
@@ -21,7 +25,9 @@ try {
   NAME = denoJson.name || NAME
 } catch (error) {
   // Use defaults if deno.json is not available
-  console.log('Note: Using default package info. deno.json not found.', error)
+  cliLogger.warn('Using default package info. deno.json not found.', {
+    error: error instanceof Error ? error : new Error(String(error)),
+  })
 }
 
 /**
@@ -54,53 +60,43 @@ export function parseArgsToObject(
  * Displays help menu
  */
 function showHelp(lib: Lib): void {
-  console.log(`${NAME} v${VERSION}`)
-  console.log('\nUsage:')
-  console.log('  cli.ts <command> [options]')
-  console.log('\nCommands:')
+  cliLogger.info(`${NAME} v${VERSION}`)
+  cliLogger.info('\nUsage:')
+  cliLogger.info('  cli.ts <command> [options]')
+  cliLogger.info('\nCommands:')
 
   // Get all methods from the Lib prototype that are not the constructor
   const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(lib))
     .filter((name) => name !== 'constructor')
 
   for (const method of methods) {
-    console.log(`  ${method} \t- Execute the ${method} operation`)
+    cliLogger.info(`  ${method} \t- Execute the ${method} operation`)
   }
 
-  console.log('\nOptions:')
-  console.log('  --help, -h \t- Display this help message')
-  console.log('  --version, -v \t- Display version information')
-  console.log('\nExample:')
-  console.log('  cli.ts read --first-name="John" --last-name="Doe"')
+  cliLogger.info('\nOptions:')
+  cliLogger.info('  --help, -h \t- Display this help message')
+  cliLogger.info('  --version, -v \t- Display version information')
+  cliLogger.info('\nExample:')
+  cliLogger.info('  cli.ts read --first-name="John" --last-name="Doe"')
 }
 
 /**
  * Displays version information
  */
 function showVersion(): void {
-  console.log(`${NAME} v${VERSION}`)
+  cliLogger.info(`${NAME} v${VERSION}`)
 }
 
-/**
- * Get command parameters based on command type
- */
-function getCommandParams(
-  command: string,
-  params: Record<string, unknown>,
-): CreateOptions | ReadOptions | UpdateOptions | DestroyOptions {
-  switch (command) {
-    case 'create':
-      return params as CreateOptions
-    case 'read':
-      return params as ReadOptions
-    case 'update':
-      return params as UpdateOptions
-    case 'destroy':
-      return params as DestroyOptions
-    default:
-      return params as Record<string, unknown>
-  }
+// Method map for typed execution
+const methodMap = {
+  create: (lib: Lib, params: CreateOptions): CreateResult => lib.create(params),
+  read: (lib: Lib, params: ReadOptions): ReadResult => lib.read(params),
+  update: (lib: Lib, params: UpdateOptions): UpdateResult => lib.update(params),
+  destroy: (lib: Lib, params: DestroyOptions): DestroyResult =>
+    lib.destroy(params),
 }
+
+type CommandType = keyof typeof methodMap
 
 /**
  * Main CLI function
@@ -134,12 +130,12 @@ async function main(): Promise<void> {
 
   // Interactive mode if no command provided
   if (args._.length === 0) {
-    console.log(`${NAME} v${VERSION} - Interactive Mode`)
-    console.log('Available commands:')
+    cliLogger.info(`${NAME} v${VERSION} - Interactive Mode`)
+    cliLogger.info('Available commands:')
     for (const cmd of availableCommands) {
-      console.log(`  - ${cmd}`)
+      cliLogger.info(`  - ${cmd}`)
     }
-    console.log('\nRun with a command or use --help for more information')
+    cliLogger.info('\nRun with a command or use --help for more information')
     return
   }
 
@@ -147,44 +143,29 @@ async function main(): Promise<void> {
   const command = String(args._[0])
 
   if (!availableCommands.includes(command)) {
-    console.error(`Error: Unknown command '${command}'`)
-    console.error('Run with --help to see available commands')
+    cliLogger.error(`Unknown command '${command}'`)
+    cliLogger.error('Run with --help to see available commands')
     Deno.exit(1)
   }
 
   // Parse remaining args into an object
   const parsedArgs = parseArgsToObject(args)
+  cliLogger.debug(`Executing ${command} with parameters`, {
+    params: parsedArgs,
+  })
 
-  // Get properly typed parameters for the command
-  const params = getCommandParams(command, parsedArgs)
-
-  // Execute the command
+  // Execute the command if it's in our method map
   try {
-    let result: CreateResult | ReadResult | UpdateResult | DestroyResult
-
-    // Call method with appropriate types
-    switch (command) {
-      case 'create':
-        result = lib.create(params as CreateOptions)
-        break
-      case 'read':
-        result = lib.read(params as ReadOptions)
-        break
-      case 'update':
-        result = lib.update(params as UpdateOptions)
-        break
-      case 'destroy':
-        result = lib.destroy(params as DestroyOptions)
-        break
-      default:
-        throw new Error(`Unknown command: ${command}`)
+    if (command in methodMap) {
+      const result = methodMap[command as CommandType](lib, parsedArgs)
+      cliLogger.info(JSON.stringify(result, null, 2))
+    } else {
+      throw new Error(`Command ${command} is not implemented in the method map`)
     }
-
-    console.log(JSON.stringify(result, null, 2))
-  } catch (error: unknown) {
-    console.error(
+  } catch (error) {
+    cliLogger.error(
       `Error executing ${command}:`,
-      error instanceof Error ? error.message : String(error),
+      { error: error instanceof Error ? error : new Error(String(error)) },
     )
     Deno.exit(1)
   }

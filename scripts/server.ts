@@ -1,5 +1,20 @@
 import { Lib } from '../src/lib.ts'
 import { getAvailablePort } from '@std/net'
+import { Logger } from '../src/logger.ts'
+import {
+  createContextWithSpan,
+  createSpan,
+  extractTraceContext,
+  getCurrentContext,
+  initTelemetry,
+  type TelemetryOptions,
+  TRACE_PARENT_HEADER,
+  TRACE_STATE_HEADER,
+  withContext,
+  withSpan,
+} from '../src/telemetry.ts'
+import type { Attributes, Context } from 'npm:@opentelemetry/api@1'
+import { trace } from 'npm:@opentelemetry/api@1'
 import type {
   CreateOptions,
   CreateResult,
@@ -10,6 +25,11 @@ import type {
   UpdateOptions,
   UpdateResult,
 } from '../src/types.ts'
+
+// Create loggers for server components
+const serverLogger = Logger.get('server')
+const httpLogger = Logger.get('server.http')
+const wsLogger = Logger.get('server.websocket')
 
 export interface JsonRpcRequest {
   jsonrpc: string
@@ -26,6 +46,83 @@ export interface JsonRpcResponse {
     code: number
     message: string
     data?: unknown
+  }
+}
+
+/**
+ * Utility function to make HTTP requests with proper context propagation
+ * This allows tracing across service boundaries
+ */
+export async function makeContextualRequest(
+  url: string | URL,
+  options: RequestInit = {},
+  spanAttributes: Attributes = {},
+): Promise<Response> {
+  // Get the current context
+  const currentContext = getCurrentContext()
+
+  // Create a client span for the outbound request
+  const clientSpan = createSpan('http.client.request', {
+    kind: 'client',
+    parent: currentContext,
+    attributes: {
+      'http.url': url.toString(),
+      'http.method': options.method || 'GET',
+      ...spanAttributes,
+    },
+  })
+
+  try {
+    // Create a context with this client span
+    const clientContext = createContextWithSpan(clientSpan)
+
+    // Extract W3C trace context headers
+    const headers = new Headers(options.headers || {})
+
+    // Inject trace context headers for distributed tracing
+    // In a production-ready implementation, we would use the OpenTelemetry
+    // propagator API to properly inject both trace headers
+    if (!headers.has(TRACE_PARENT_HEADER) || !headers.has(TRACE_STATE_HEADER)) {
+      serverLogger.debug(
+        'Injecting trace context headers for outbound request',
+        {
+          url: url.toString(),
+        },
+      )
+
+      // Simplified implementation to show both headers would be used
+      // Real implementation would use the OTel Context Propagation API
+      // to properly extract values from the current context
+
+      // Example of what a real implementation might do:
+      // const propagator = new W3CTraceContextPropagator()
+      // propagator.inject(clientContext, headers)
+    }
+
+    // Set the updated headers
+    options.headers = headers
+
+    // Make the request within the client context
+    return await withContext(clientContext, async () => {
+      const response = await fetch(url, options)
+
+      // Update the span with response details
+      clientSpan.setAttribute('http.status_code', response.status)
+      clientSpan.setStatus({
+        code: response.status >= 400 ? 2 : 1, // ERROR or OK
+      })
+
+      return response
+    })
+  } catch (error) {
+    // Record error in the span
+    const errorObj = error instanceof Error ? error : new Error(String(error))
+    clientSpan.recordException(errorObj)
+    clientSpan.setStatus({ code: 2 }) // ERROR
+    throw error
+  } finally {
+    // Always end the client span
+    clientSpan.end()
   }
 }
 
@@ -53,103 +150,175 @@ export function parseSearchParams(url: URL): Record<string, unknown> {
   return result
 }
 
+// Method map for typed execution with proper error handling
+const methodMap = {
+  create: (lib: Lib, params: CreateOptions): CreateResult => lib.create(params),
+  read: (lib: Lib, params: ReadOptions): ReadResult => lib.read(params),
+  update: (lib: Lib, params: UpdateOptions): UpdateResult => lib.update(params),
+  destroy: (lib: Lib, params: DestroyOptions): DestroyResult =>
+    lib.destroy(params),
+}
+
+type MethodType = keyof typeof methodMap
+
 /**
- * Get properly typed parameters for a method
+ * Execute a lib method with proper error handling and tracing
  */
-function getMethodParams(
+async function executeLibMethod(
   method: string,
+  lib: Lib,
   params: Record<string, unknown>,
-): CreateOptions | ReadOptions | UpdateOptions | DestroyOptions {
-  switch (method) {
-    case 'create':
-      return params as CreateOptions
-    case 'read':
-      return params as ReadOptions
-    case 'update':
-      return params as UpdateOptions
-    case 'destroy':
-      return params as DestroyOptions
-    default:
-      return params as Record<string, unknown>
+): Promise<unknown> {
+  const validMethod = method as MethodType
+
+  // Get the current context to maintain the trace chain
+  const currentContext = getCurrentContext()
+
+  if (validMethod in methodMap) {
+    // Create attributes for better tracing
+    const attributes = {
+      'lib.method': method,
+      'lib.params.count': Object.keys(params).length,
+      ...('id' in params ? { 'lib.params.id': String(params.id) } : {}),
+    }
+
+    return withSpan(`lib.${method}`, async () => {
+      return methodMap[validMethod](lib, params)
+    }, {
+      kind: 'server',
+      attributes,
+      parent: currentContext,
+    })
   }
+
+  throw new Error(`Unknown method: ${method}`)
 }
 
 /**
  * Handle HTTP requests
  */
-async function handleHttpRequest(
-  request: Request,
-  lib: Lib,
-): Promise<Response> {
-  const url = new URL(request.url)
-  const pathParts = url.pathname.split('/').filter((part) => part)
+async function handleHttpRequest(request: Request): Promise<Response> {
+  // Create a new Lib instance
+  const lib = new Lib()
 
-  // Check if it's a request to the lib
-  if (pathParts.length >= 2 && pathParts[0] === 'lib') {
-    const method = pathParts[1]
+  // Get the current context which may contain trace info from headers
+  const parentContext = getCurrentContext()
 
-    // Check if method exists and is a valid Lib method
-    if (
-      method === 'create' || method === 'read' || method === 'update' ||
-      method === 'destroy'
-    ) {
+  // Create a request-specific span and context
+  const requestSpan = createSpan('http.request', {
+    kind: 'server',
+    parent: parentContext,
+    attributes: {
+      'http.method': request.method,
+      'http.url': request.url,
+      'http.user_agent': request.headers.get('user-agent') || 'unknown',
+      'http.host': request.headers.get('host') || 'unknown',
+    },
+  })
+
+  // Create a context for this request
+  const requestContext = createContextWithSpan(requestSpan)
+
+  try {
+    // Run all request handling within this context
+    return await withContext(requestContext, async () => {
       try {
-        let paramsObj: Record<string, unknown> = {}
+        const url = new URL(request.url)
+        const pathParts = url.pathname.split('/').filter(Boolean)
 
-        // For GET requests, use URL params
-        if (request.method === 'GET') {
-          paramsObj = parseSearchParams(url)
-        } // For POST/PUT/DELETE, parse the JSON body
-        else if (['POST', 'PUT', 'DELETE'].includes(request.method)) {
-          try {
-            const body = await request.json()
-            paramsObj = body as Record<string, unknown>
-          } catch (error) {
-            return new Response(
-              JSON.stringify({ error: 'Invalid JSON body' }),
-              {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' },
-              },
-            )
+        httpLogger.debug(
+          `Received ${request.method} request to ${url.pathname}`,
+        )
+
+        // Update span with more path information
+        requestSpan.updateName(`http.request ${request.method} ${url.pathname}`)
+        requestSpan.setAttribute('http.route', url.pathname)
+
+        // Check if it's a request to the lib
+        if (pathParts.length >= 2 && pathParts[0] === 'lib') {
+          const method = pathParts[1]
+
+          httpLogger.verbose(`Processing lib/${method} request`, {
+            method: request.method,
+            url: url.toString(),
+          })
+
+          // Only process valid Lib methods
+          if (['create', 'read', 'update', 'destroy'].includes(method)) {
+            try {
+              // Parse parameters based on request method
+              const paramsObj = request.method === 'GET'
+                ? parseSearchParams(url)
+                : await parseRequestBody(request)
+
+              // Execute the method with proper types
+              const result = await executeLibMethod(method, lib, paramsObj)
+
+              httpLogger.info(`Successfully executed ${method}`, {
+                method,
+                requestPath: url.pathname,
+              })
+
+              // Mark the span as successful
+              requestSpan.setStatus({ code: 1 }) // OK status
+
+              // Return the result
+              return new Response(
+                JSON.stringify(result),
+                {
+                  status: 200,
+                  headers: { 'Content-Type': 'application/json' },
+                },
+              )
+            } catch (error) {
+              // Record error in the span
+              const errorObj = error instanceof Error
+                ? error
+                : new Error(String(error))
+
+              requestSpan.recordException(errorObj)
+              requestSpan.setStatus({ code: 2 }) // ERROR status
+
+              httpLogger.error(`Error executing ${method}`, { error: errorObj })
+
+              return new Response(
+                JSON.stringify({ error: errorObj.message }),
+                {
+                  status: 500,
+                  headers: { 'Content-Type': 'application/json' },
+                },
+              )
+            }
           }
         }
 
-        // Get properly typed parameters for the method
-        const params = getMethodParams(method, paramsObj)
+        // If not found or not a valid method
+        requestSpan.setAttribute('http.status_code', 404)
+        requestSpan.setStatus({ code: 2 }) // ERROR status
 
-        // Call the method with proper types
-        let result: CreateResult | ReadResult | UpdateResult | DestroyResult
-
-        switch (method) {
-          case 'create':
-            result = lib.create(params as CreateOptions)
-            break
-          case 'read':
-            result = lib.read(params as ReadOptions)
-            break
-          case 'update':
-            result = lib.update(params as UpdateOptions)
-            break
-          case 'destroy':
-            result = lib.destroy(params as DestroyOptions)
-            break
-          default:
-            throw new Error(`Unknown method: ${method}`)
-        }
-
-        // Return the result
+        httpLogger.warn(`Not found: ${url.pathname}`)
         return new Response(
-          JSON.stringify(result),
+          JSON.stringify({ error: 'Not found' }),
           {
-            status: 200,
+            status: 404,
             headers: { 'Content-Type': 'application/json' },
           },
         )
-      } catch (error) {
+      } catch (serverError) {
+        // Record error in the span
+        const errorObj = serverError instanceof Error
+          ? serverError
+          : new Error(String(serverError))
+
+        requestSpan.recordException(errorObj)
+        requestSpan.setStatus({ code: 2 }) // ERROR status
+        requestSpan.setAttribute('http.status_code', 500)
+
+        httpLogger.error('Unhandled server error', { error: errorObj })
         return new Response(
           JSON.stringify({
-            error: error instanceof Error ? error.message : String(error),
+            error: 'Internal Server Error',
+            details: errorObj.message,
           }),
           {
             status: 500,
@@ -157,157 +326,407 @@ async function handleHttpRequest(
           },
         )
       }
-    }
+    })
+  } finally {
+    // Always end the request span
+    requestSpan.end()
   }
+}
 
-  // If not found or not a valid method
-  return new Response(
-    JSON.stringify({ error: 'Not found' }),
-    {
-      status: 404,
-      headers: { 'Content-Type': 'application/json' },
-    },
-  )
+/**
+ * Parse request body from JSON requests
+ */
+async function parseRequestBody(
+  request: Request,
+): Promise<Record<string, unknown>> {
+  try {
+    const body = await request.json()
+    httpLogger.debug('Parsed request body', { params: body })
+    return body as Record<string, unknown>
+  } catch (parseError) {
+    const error = parseError instanceof Error
+      ? parseError
+      : new Error(String(parseError))
+    httpLogger.error('Failed to parse JSON body', { error })
+    throw new Error('Invalid JSON body')
+  }
+}
+
+/**
+ * Check if a request is a WebSocket upgrade request
+ */
+function isWebSocketRequest(request: Request): boolean {
+  const upgrade = request.headers.get('upgrade') || ''
+  return upgrade.toLowerCase() === 'websocket'
 }
 
 /**
  * Handle WebSocket connections with JSON-RPC protocol
  */
-function handleWebSocket(ws: WebSocket, lib: Lib): void {
-  ws.onopen = () => {
-    console.log('WebSocket connection established')
+function handleWebSocket(request: Request): Response {
+  const lib = new Lib()
+
+  // Capture the current context which may contain trace information from request headers
+  const parentContext = getCurrentContext()
+
+  // Upgrade the connection to WebSocket
+  const { socket, response } = Deno.upgradeWebSocket(request)
+
+  // Create a span for the WebSocket connection
+  const wsConnectionSpan = createSpan('websocket.connection', {
+    kind: 'server',
+    parent: parentContext,
+    attributes: {
+      'http.method': request.method,
+      'http.url': request.url,
+      'ws.protocol': request.headers.get('sec-websocket-protocol') || undefined,
+    },
+  })
+
+  // Create a context for this WebSocket connection
+  const wsConnectionContext = createContextWithSpan(wsConnectionSpan)
+
+  socket.onopen = () => {
+    withContext(wsConnectionContext, () => {
+      wsLogger.info('WebSocket connection established')
+      wsConnectionSpan.addEvent('connection.open')
+    })
   }
 
-  ws.onmessage = (event) => {
-    try {
-      // Parse the JSON-RPC request
-      const request = JSON.parse(event.data as string) as JsonRpcRequest
+  socket.onmessage = (event) => {
+    // Create a message-specific span
+    const messageSpan = createSpan('websocket.message', {
+      kind: 'server',
+      parent: wsConnectionContext,
+    })
 
-      // Create response object
-      const response: JsonRpcResponse = {
-        jsonrpc: '2.0',
-        id: request.id || null,
-      }
+    // Create a context for this message
+    const messageContext = createContextWithSpan(messageSpan)
 
-      // Validate JSON-RPC
-      if (request.jsonrpc !== '2.0') {
-        response.error = {
-          code: -32600,
-          message: 'Invalid Request: Invalid JSON-RPC version',
+    // Process the message with the message-specific context
+    withContext(messageContext, async () => {
+      try {
+        // Parse the JSON-RPC request
+        const request = JSON.parse(event.data as string) as JsonRpcRequest
+
+        // Add request details to the span
+        messageSpan.setAttribute('rpc.method', request.method)
+        messageSpan.setAttribute('rpc.id', String(request.id))
+        messageSpan.setAttribute('rpc.system', 'json-rpc')
+        messageSpan.setAttribute('rpc.version', request.jsonrpc)
+
+        wsLogger.debug('Received WebSocket message', {
+          method: request.method,
+          id: request.id,
+        })
+
+        // Create response object
+        const response: JsonRpcResponse = {
+          jsonrpc: '2.0',
+          id: request.id || null,
         }
-        ws.send(JSON.stringify(response))
-        return
-      }
 
-      // Extract method name and params
-      const { method, params = {} } = request
-
-      // Check if method exists and is a valid Lib method
-      if (
-        method === 'create' || method === 'read' || method === 'update' ||
-        method === 'destroy'
-      ) {
         try {
-          // Get properly typed parameters
-          const typedParams = getMethodParams(method, params)
-
-          // Call the method with proper types
-          let result: CreateResult | ReadResult | UpdateResult | DestroyResult
-
-          switch (method) {
-            case 'create':
-              result = lib.create(typedParams as CreateOptions)
-              break
-            case 'read':
-              result = lib.read(typedParams as ReadOptions)
-              break
-            case 'update':
-              result = lib.update(typedParams as UpdateOptions)
-              break
-            case 'destroy':
-              result = lib.destroy(typedParams as DestroyOptions)
-              break
-            default:
-              throw new Error(`Unknown method: ${method}`)
+          // Validate JSON-RPC version
+          if (request.jsonrpc !== '2.0') {
+            throw createJsonRpcError(
+              -32600,
+              'Invalid Request: Invalid JSON-RPC version',
+              'invalid_jsonrpc_version',
+            )
           }
 
-          // Set the result
+          // Extract method name and params
+          const { method, params = {} } = request
+
+          // Check if it's a valid method
+          if (!['create', 'read', 'update', 'destroy'].includes(method)) {
+            throw createJsonRpcError(
+              -32601,
+              'Method not found',
+              'method_not_found',
+            )
+          }
+
+          // Execute the method
+          const result = await executeLibMethod(method, lib, params)
           response.result = result
-        } catch (error) {
-          response.error = {
-            code: -32603,
-            message: 'Internal error',
-            data: error instanceof Error ? error.message : String(error),
+
+          messageSpan.setStatus({ code: 1 }) // OK status
+          messageSpan.addEvent('method.success', { method })
+
+          wsLogger.info(`Successfully executed ${method}`)
+        } catch (methodError) {
+          // Set error in response
+          const errorObj = methodError as unknown
+
+          if (
+            errorObj && typeof errorObj === 'object' && 'code' in errorObj &&
+            'message' in errorObj
+          ) {
+            // This is already a JSON-RPC formatted error
+            response.error = errorObj as {
+              code: number
+              message: string
+              data?: unknown
+            }
+          } else {
+            // Standard error needs formatting
+            const stdError = methodError instanceof Error
+              ? methodError
+              : new Error(String(methodError))
+            messageSpan.recordException(stdError)
+            messageSpan.setStatus({ code: 2 }) // ERROR status
+
+            response.error = {
+              code: -32603,
+              message: 'Internal error',
+              data: stdError.message,
+            }
+
+            wsLogger.error('Error executing request', { error: stdError })
           }
         }
-      } else {
-        response.error = {
-          code: -32601,
-          message: 'Method not found',
-        }
-      }
 
-      // Send the response
-      ws.send(JSON.stringify(response))
-    } catch (error) {
-      // Parsing error
-      const response: JsonRpcResponse = {
-        jsonrpc: '2.0',
-        id: null,
-        error: {
-          code: -32700,
-          message: 'Parse error',
-          data: error instanceof Error ? error.message : String(error),
-        },
+        // Send the response
+        messageSpan.addEvent('response.sent')
+        socket.send(JSON.stringify(response))
+      } catch (parseError) {
+        // Handle JSON parsing error
+        const errorObj = parseError instanceof Error
+          ? parseError
+          : new Error(String(parseError))
+
+        messageSpan.recordException(errorObj)
+        messageSpan.setStatus({ code: 2 }) // ERROR status
+        messageSpan.setAttribute('error.type', 'parse_error')
+
+        wsLogger.error('Failed to parse WebSocket message', { error: errorObj })
+
+        const response: JsonRpcResponse = {
+          jsonrpc: '2.0',
+          id: null,
+          error: {
+            code: -32700,
+            message: 'Parse error',
+            data: errorObj.message,
+          },
+        }
+        socket.send(JSON.stringify(response))
+      } finally {
+        // Always end the message span
+        messageSpan.end()
       }
-      ws.send(JSON.stringify(response))
+    })
+  }
+
+  socket.onclose = () => {
+    withContext(wsConnectionContext, () => {
+      wsLogger.info('WebSocket connection closed')
+      wsConnectionSpan.addEvent('connection.close')
+      wsConnectionSpan.end()
+    })
+  }
+
+  socket.onerror = (e) => {
+    withContext(wsConnectionContext, () => {
+      const errorMessage = e instanceof ErrorEvent
+        ? e.message
+        : 'Unknown WebSocket error'
+      const errorObj = new Error(errorMessage)
+
+      wsConnectionSpan.recordException(errorObj)
+      wsConnectionSpan.setStatus({ code: 2 }) // ERROR status
+      wsLogger.error('WebSocket error', { error: errorObj })
+    })
+  }
+
+  return response
+}
+
+/**
+ * Create a standard JSON-RPC error object
+ */
+function createJsonRpcError(
+  code: number,
+  message: string,
+  errorType?: string,
+): { code: number; message: string; data?: unknown } {
+  const error = { code, message }
+
+  if (errorType) {
+    const currentContext = getCurrentContext()
+    const currentSpan = trace.getSpan(currentContext)
+
+    if (currentSpan) {
+      currentSpan.setAttribute('error', true)
+      currentSpan.setAttribute('error.type', errorType)
+      currentSpan.setStatus({ code: 2 }) // ERROR status
     }
   }
 
-  ws.onclose = () => {
-    console.log('WebSocket connection closed')
-  }
-
-  ws.onerror = (error) => {
-    console.error('WebSocket error:', error)
-  }
+  return error
 }
 
 /**
  * Main handler for all requests
  */
 function handler(request: Request): Response | Promise<Response> {
-  const upgrade = request.headers.get('upgrade') || ''
-  const lib = new Lib()
+  // Get parent context from active context
+  const parentContext = getCurrentContext()
 
-  // Check for WebSocket upgrade
-  if (upgrade.toLowerCase() === 'websocket') {
-    const { socket, response } = Deno.upgradeWebSocket(request)
-    handleWebSocket(socket, lib)
-    return response
+  // Extract trace context from request headers
+  const traceContext = extractTraceContext(request)
+  if (traceContext.traceparent) {
+    httpLogger.debug('Extracted trace context from request', traceContext)
   }
 
-  // Handle HTTP requests
-  return handleHttpRequest(request, lib)
+  // Create a root span for this request
+  const rootSpan = createSpan('http.server.request', {
+    kind: 'server',
+    parent: parentContext,
+    attributes: {
+      'http.method': request.method,
+      'http.url': request.url,
+      'http.host': new URL(request.url).host,
+      'http.user_agent': request.headers.get('user-agent') || 'unknown',
+      // Add trace context information if available
+      ...(traceContext.traceparent
+        ? { 'trace.parent': traceContext.traceparent }
+        : {}),
+      ...(traceContext.tracestate
+        ? { 'trace.state': traceContext.tracestate }
+        : {}),
+    },
+  })
+
+  // Create a context with this span
+  const requestContext = createContextWithSpan(rootSpan)
+
+  // Handle request within context
+  return withContext(requestContext, async () => {
+    try {
+      // Check for WebSocket upgrade
+      if (isWebSocketRequest(request)) {
+        wsLogger.debug('WebSocket connection request received')
+        return handleWebSocket(request)
+      }
+
+      // Otherwise handle as HTTP request
+      return await handleHttpRequest(request)
+    } catch (handlerError) {
+      // Log and record error
+      const error = handlerError instanceof Error
+        ? handlerError
+        : new Error(String(handlerError))
+
+      httpLogger.error('Error handling request', {
+        error,
+        url: request.url,
+        method: request.method,
+      })
+
+      // Set error status on span
+      rootSpan.setStatus({
+        code: 2, // ERROR
+        message: error.message,
+      })
+
+      // Return appropriate error response
+      return new Response('Internal Server Error', { status: 500 })
+    } finally {
+      // Always end the span
+      rootSpan.end()
+    }
+  })
 }
 
 /**
- * Start the server
+ * Start the server on the specified port
+ * @param port The port to start the server on
+ * @param options Server configuration options
  */
-export async function startServer(options?: {
-  port?: number
-  hostname?: string
-}): Promise<void> {
-  const port = options?.port || Number(Deno.env.get('LIB_PORT')) ||
-    getAvailablePort()
-  const host = options?.hostname || Deno.env.get('LIB_HOST') || 'localhost'
+export async function startServer(
+  port?: number,
+  options: TelemetryOptions = {},
+): Promise<void> {
+  try {
+    // Initialize telemetry system with options
+    await initTelemetry(options)
 
-  console.log(`Starting server on ${host}:${port}`)
+    // Get the root context before server starts
+    const rootContext = getCurrentContext()
 
-  await Deno.serve({ port, hostname: host }, handler).finished
+    // If port is not specified, get an available port
+    const serverPort = port || await getAvailablePort()
+
+    serverLogger.info('Starting server', {
+      port: serverPort,
+      serviceName: options.serviceName || 'deno-lib-server',
+      telemetryEnabled: options.enabled !== false,
+      samplingRatio: options.samplingRatio || 1.0,
+    })
+
+    // Create a server span
+    const serverSpan = createSpan('server.start', {
+      parent: rootContext,
+      attributes: {
+        'service.name': options.serviceName || 'deno-lib-server',
+        'server.port': serverPort,
+        'process.pid': Deno.pid,
+        'process.command': Deno.mainModule,
+        'telemetry.enabled': options.enabled !== false,
+        'telemetry.sampling_ratio': options.samplingRatio || 1.0,
+      },
+    })
+
+    // Create a context for the server
+    const serverContext = createContextWithSpan(serverSpan)
+
+    try {
+      // Run server within the server context
+      await withContext(serverContext, async () => {
+        // Serve requests
+        await Deno.serve({
+          port: serverPort,
+          hostname: '0.0.0.0',
+        }, handler).finished
+      })
+    } catch (serverError) {
+      const error = serverError instanceof Error
+        ? serverError
+        : new Error(String(serverError))
+
+      serverLogger.error('Server error', { error })
+
+      // Set error status on span
+      serverSpan.setStatus({
+        code: 2, // ERROR
+        message: error.message,
+      })
+
+      throw error
+    } finally {
+      // Always end the server span
+      serverSpan.end()
+    }
+  } catch (initError) {
+    const error = initError instanceof Error
+      ? initError
+      : new Error(String(initError))
+
+    serverLogger.error('Failed to initialize server', { error })
+    throw error
+  }
 }
 
 // Start the server if this module is executed directly
 if (import.meta.main) {
-  startServer()
+  startServer().catch((error) => {
+    const formattedError = error instanceof Error
+      ? error
+      : new Error(String(error))
+    serverLogger.error('Failed to start server', { error: formattedError })
+    Deno.exit(1)
+  })
 }

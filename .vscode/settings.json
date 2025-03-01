@@ -48,6 +48,10 @@
     "asynciterable",
     "webgpu",
     "Iles",
-    "onclose"
+    "onclose",
+    "Zipkin",
+    "parentbased",
+    "tracestate",
+    "traceparent"
   ],
 }
