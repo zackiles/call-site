@@ -1,7 +1,7 @@
 {
   // Schema deno.jsonc: @https://github.com/denoland/deno/blob/main/cli/schemas/config-file.v1.json
   "name": "@zackiles/deno-kit",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Modern Deno 2 library starter kit",
   "license": "MIT",
   "author": "Zachary Iles <{zack.iles@gmail.com}>",
