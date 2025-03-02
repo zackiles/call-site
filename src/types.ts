@@ -5,30 +5,48 @@
 /**
  * Configuration options for the Lib class
  */
-export interface LibConfig {
+interface LibConfig {
   [key: string]: unknown
 }
 
 /**
- * Generic type for CRUD operation options
+ * Generic type for CRUD operation options and results
  */
-export interface CrudOptions {
+interface CrudOptions {
+  [key: string]: unknown
+}
+
+interface CrudResult {
   [key: string]: unknown
 }
 
 /**
- * Generic type for CRUD operation results
+ * Aliases for each CRUD operation - all share the same underlying types
+ * but provide semantic clarity at API boundaries
  */
-export interface CrudResult {
-  [key: string]: unknown
-}
+// CRUD operation aliases - Using common base types for type safety
+// while maintaining semantic differentiation in API signatures
+type CreateOptions = CrudOptions
+type CreateResult = CrudResult
+type ReadOptions = CrudOptions
+type ReadResult = CrudResult
+type UpdateOptions = CrudOptions
+type UpdateResult = CrudResult
+type DestroyOptions = CrudOptions
+type DestroyResult = CrudResult
 
-// Type aliases for semantic clarity in API
-export type CreateOptions = CrudOptions
-export type CreateResult = CrudResult
-export type ReadOptions = CrudOptions
-export type ReadResult = CrudResult
-export type UpdateOptions = CrudOptions
-export type UpdateResult = CrudResult
-export type DestroyOptions = CrudOptions
-export type DestroyResult = CrudResult
+export type {
+  // Operation-specific aliases
+  CreateOptions,
+  CreateResult,
+  // Base types
+  CrudOptions,
+  CrudResult,
+  DestroyOptions,
+  DestroyResult,
+  LibConfig,
+  ReadOptions,
+  ReadResult,
+  UpdateOptions,
+  UpdateResult,
+}

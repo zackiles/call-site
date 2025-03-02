@@ -1,6 +1,7 @@
 import { parseArgs } from '@std/cli'
 import { Lib } from '../src/lib.ts'
 import { Logger } from '../src/logger.ts'
+import { getPackageInfo } from '../src/utils.ts'
 import type {
   CreateOptions,
   CreateResult,
@@ -15,20 +16,8 @@ import type {
 // Create a logger for the CLI
 const cliLogger = Logger.get('cli')
 
-// Get package info from deno.json
-let VERSION = '0.0.1'
-let NAME = '@zackiles/starter-lib'
-
-try {
-  const denoJson = JSON.parse(Deno.readTextFileSync('./deno.json'))
-  VERSION = denoJson.version || VERSION
-  NAME = denoJson.name || NAME
-} catch (error) {
-  // Use defaults if deno.json is not available
-  cliLogger.warn('Using default package info. deno.json not found.', {
-    error: error instanceof Error ? error : new Error(String(error)),
-  })
-}
+// Get package info from deno.jsonc
+const { name: NAME, version: VERSION } = getPackageInfo()
 
 /**
  * Converts kebab-case CLI arguments to camelCase for method parameters
@@ -101,7 +90,7 @@ type CommandType = keyof typeof methodMap
 /**
  * Main CLI function
  */
-async function main(): Promise<void> {
+function main(): void {
   const args = parseArgs(Deno.args, {
     boolean: ['help', 'version'],
     alias: { h: 'help', v: 'version' },

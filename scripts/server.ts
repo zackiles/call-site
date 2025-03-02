@@ -1,3 +1,5 @@
+import type { Attributes } from '@opentelemetry/api'
+import { trace } from '@opentelemetry/api'
 import { Lib } from '../src/lib.ts'
 import { getAvailablePort } from '@std/net'
 import { Logger } from '../src/logger.ts'
@@ -13,8 +15,6 @@ import {
   withContext,
   withSpan,
 } from '../src/telemetry.ts'
-import type { Attributes, Context } from 'npm:@opentelemetry/api@1'
-import { trace } from 'npm:@opentelemetry/api@1'
 import type {
   CreateOptions,
   CreateResult,
@@ -659,9 +659,11 @@ export async function startServer(
 
     // If port is not specified, get an available port
     const serverPort = port || await getAvailablePort()
+    const serverHost = Deno.env.get('LIB_SERVER_HOST') || '0.0.0.0'
 
     serverLogger.info('Starting server', {
       port: serverPort,
+      host: serverHost,
       serviceName: options.serviceName || 'deno-lib-server',
       telemetryEnabled: options.enabled !== false,
       samplingRatio: options.samplingRatio || 1.0,
@@ -689,7 +691,7 @@ export async function startServer(
         // Serve requests
         await Deno.serve({
           port: serverPort,
-          hostname: '0.0.0.0',
+          hostname: serverHost,
         }, handler).finished
       })
     } catch (serverError) {

@@ -9,8 +9,8 @@ const logger = Logger.get('telemetry')
 const SERVICE_NAME = Deno.env.get('OTEL_SERVICE_NAME') || 'lib'
 
 // Define trace header constants for distributed tracing
-export const TRACE_PARENT_HEADER = 'traceparent'
-export const TRACE_STATE_HEADER = 'tracestate'
+const TRACE_PARENT_HEADER = 'traceparent'
+const TRACE_STATE_HEADER = 'tracestate'
 
 // Map kind string to SpanKind enum for better code reuse
 const KIND_MAP: Record<string, number> = {
@@ -25,7 +25,7 @@ const KIND_MAP: Record<string, number> = {
  * Extract trace context from HTTP request headers
  * This enables distributed tracing across services
  */
-export const extractTraceContext = (request: Request) => ({
+const extractTraceContext = (request: Request) => ({
   traceparent: request.headers.get(TRACE_PARENT_HEADER) || undefined,
   tracestate: request.headers.get(TRACE_STATE_HEADER) || undefined,
 })
@@ -33,29 +33,28 @@ export const extractTraceContext = (request: Request) => ({
 /**
  * Get the current tracer for the service
  */
-export const getTracer = (name = SERVICE_NAME) => trace.getTracer(name)
+const getTracer = (name = SERVICE_NAME) => trace.getTracer(name)
 
 /**
  * Get the current context or create a new one
  */
-export const getCurrentContext = (): Context => context.active()
+const getCurrentContext = (): Context => context.active()
 
 /**
  * Create a child context with the given span
  */
-export const createContextWithSpan = (span: Span, parent?: Context): Context =>
+const createContextWithSpan = (span: Span, parent?: Context): Context =>
   trace.setSpan(parent || context.active(), span)
 
 /**
  * Execute a callback with the given context active
  */
-export const withContext = <T>(ctx: Context, fn: () => T): T =>
-  context.with(ctx, fn)
+const withContext = <T>(ctx: Context, fn: () => T): T => context.with(ctx, fn)
 
 /**
  * Create a span for a given operation
  */
-export async function withSpan<T>(
+async function withSpan<T>(
   name: string,
   fn: () => Promise<T> | T,
   options: {
@@ -112,7 +111,7 @@ export async function withSpan<T>(
 /**
  * Create a new detached span (not set as active)
  */
-export function createSpan(
+function createSpan(
   name: string,
   options: {
     attributes?: Attributes
@@ -142,7 +141,7 @@ export function createSpan(
 /**
  * Options for initializing telemetry
  */
-export interface TelemetryOptions {
+interface TelemetryOptions {
   /** The name of the service */
   serviceName?: string
   /** Whether telemetry is enabled */
@@ -158,7 +157,7 @@ export interface TelemetryOptions {
 /**
  * Initialize OpenTelemetry for the application
  */
-export async function initTelemetry(options?: TelemetryOptions): Promise<void> {
+function initTelemetry(options?: TelemetryOptions): void {
   const serviceName = options?.serviceName ||
     Deno.env.get('OTEL_SERVICE_NAME') || 'lib'
   const enabled = options?.enabled !== false &&
@@ -200,3 +199,17 @@ export async function initTelemetry(options?: TelemetryOptions): Promise<void> {
 }
 
 // Don't auto-initialize at module load - let the application control this
+export {
+  createContextWithSpan,
+  createSpan,
+  extractTraceContext,
+  getCurrentContext,
+  getTracer,
+  initTelemetry,
+  TRACE_PARENT_HEADER,
+  TRACE_STATE_HEADER,
+  withContext,
+  withSpan,
+}
+
+export type { TelemetryOptions }

@@ -9,12 +9,17 @@
     "jsr:@std/data-structures@^1.0.6": "1.0.6",
     "jsr:@std/fs@^1.0.9": "1.0.13",
     "jsr:@std/internal@^1.0.5": "1.0.5",
+    "jsr:@std/json@1": "1.0.1",
+    "jsr:@std/jsonc@1": "1.0.1",
     "jsr:@std/net@1": "1.0.4",
     "jsr:@std/path@^1.0.8": "1.0.8",
     "jsr:@std/testing@1": "1.0.9",
     "npm:@opentelemetry/api-logs@0": "0.57.2",
     "npm:@opentelemetry/api@1": "1.9.0",
-    "npm:@opentelemetry/sdk-logs@0": "0.57.2_@opentelemetry+api@1.9.0"
+    "npm:@opentelemetry/resources@1": "1.30.1_@opentelemetry+api@1.9.0",
+    "npm:@opentelemetry/sdk-logs@0": "0.57.2_@opentelemetry+api@1.9.0",
+    "npm:@opentelemetry/sdk-trace-base@1": "1.30.1_@opentelemetry+api@1.9.0",
+    "npm:@opentelemetry/semantic-conventions@1": "1.28.0"
   },
   "jsr": {
     "@std/assert@1.0.11": {
@@ -40,6 +45,15 @@
     },
     "@std/internal@1.0.5": {
       "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
+    },
+    "@std/json@1.0.1": {
+      "integrity": "1f0f70737e8827f9acca086282e903677bc1bb0c8ffcd1f21bca60039563049f"
+    },
+    "@std/jsonc@1.0.1": {
+      "integrity": "6b36956e2a7cbb08ca5ad7fbec72e661e6217c202f348496ea88747636710dda",
+      "dependencies": [
+        "jsr:@std/json"
+      ]
     },
     "@std/net@1.0.4": {
       "integrity": "2f403b455ebbccf83d8a027d29c5a9e3a2452fea39bb2da7f2c04af09c8bc852"
@@ -93,6 +107,15 @@
         "@opentelemetry/resources"
       ]
     },
+    "@opentelemetry/sdk-trace-base@1.30.1_@opentelemetry+api@1.9.0": {
+      "integrity": "sha512-jVPgBbH1gCy2Lb7X0AVQ8XAfgg0pJ4nvl8/IiQA6nxOsPvS+0zMJaFSs2ltXe0J6C8dqjcnpyqINDJmU30+uOg==",
+      "dependencies": [
+        "@opentelemetry/api",
+        "@opentelemetry/core",
+        "@opentelemetry/resources",
+        "@opentelemetry/semantic-conventions"
+      ]
+    },
     "@opentelemetry/semantic-conventions@1.28.0": {
       "integrity": "sha512-lp4qAiMTD4sNWW4DbKLBkfiMZ4jbAboJIGOQr5DvciMRI494OapieI9qiODpOt0XBr1LjIDy1xAGAnVs5supTA=="
     }
@@ -101,6 +124,7 @@
     "dependencies": [
       "jsr:@std/assert@1",
       "jsr:@std/cli@1",
+      "jsr:@std/jsonc@1",
       "jsr:@std/net@1",
       "jsr:@std/testing@1",
       "npm:@opentelemetry/api-logs@0",

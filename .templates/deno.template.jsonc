@@ -1,21 +1,20 @@
 {
   // Schema deno.jsonc: @https://github.com/denoland/deno/blob/main/cli/schemas/config-file.v1.json
-  "name": "@zackiles/deno-lib-starter",
-  "version": "0.0.1",
-  "description": "Modern, AI-native, Deno 2 library starter kit",
+  "name": "{PACKAGE_NAME}",
+  "version": "{PACKAGE_VERSION}",
+  "description": "A modern Deno 2 library starter kit",
   "license": "MIT",
-  "author": "Zachary Iles <zack.iles@gmail.com>",
-  "homepage": "https://github.com/zackiles/deno-lib-starter",
+  "author": "{PACKAGE_AUTHOR_NAME} <{PACKAGE_AUTHOR_EMAIL}>",
+  "homepage": "https://github.com/zackiles/{PROJECT_NAME}",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zackiles/deno-lib-starter.git"
+    "url": "https://github.com/zackiles/{PROJECT_NAME}.git"
   },
-  // Run tasks with: deno task <task-name>
   "tasks": {
-    "server": "deno run --allow-all --allow-net scripts/server.ts",
-    "server:dev": "deno run --allow-all --watch-hmr scripts/server.ts",
+    "server": "deno run --allow-env --allow-net scripts/server.ts",
+    "server:dev": "deno run --allow-all --watch scripts/server.ts",
     "server:telemetry": "OTEL_DENO=true deno run --allow-all scripts/server.ts",
-    "cli": "deno run --allow-all scripts/cli.ts",
+    "cli": "deno run --allow-env --allow-read scripts/cli.ts",
     "cli:dev": "deno run --allow-all --watch scripts/cli.ts",
     "cli:telemetry": "OTEL_DENO=true deno run --allow-all scripts/cli.ts",
     "test": "deno test --allow-all",
@@ -80,7 +79,7 @@
       "exclude": [
         // LLMs don't play well with this rule.
         "no-explicit-any"
-      ]
+      ],
     },
     "include": [
       "src/",

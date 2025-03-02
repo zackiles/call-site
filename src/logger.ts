@@ -5,7 +5,7 @@ import {
   SimpleLogRecordProcessor,
 } from '@opentelemetry/sdk-logs'
 
-export type LogLevelName =
+type LogLevelName =
   | 'silent'
   | 'error'
   | 'warn'
@@ -66,7 +66,7 @@ const loggerName = Deno.env.get('LIB_LOG_NAME') ||
   Deno.env.get('OTEL_SERVICE_NAME') || 'DENO_LOGs'
 const logger = logs.getLogger(loggerName)
 
-export class Logger {
+class Logger {
   private static readonly instances = new Map<string, Logger>()
 
   private static get globalTags(): string[] {
@@ -173,3 +173,6 @@ export class Logger {
   error = (messageOrError: string | Error, data?: LogData) =>
     this.emitLog('error', messageOrError, data)
 }
+
+export { Logger }
+export type { LogData, LoggerConfig, LogLevelName }
