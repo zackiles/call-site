@@ -1,10 +1,13 @@
 import { assertEquals, assertExists } from '@std/assert'
 import { describe, it } from '@std/testing/bdd'
-import { startServer } from '../scripts/server.ts'
-import type { JsonRpcRequest, JsonRpcResponse } from '../scripts/server.ts'
+import { startServer } from '../.deno-kit/host-server.ts'
+import type {
+  JsonRpcRequest,
+  JsonRpcResponse,
+} from '../.deno-kit/host-server.ts'
 
 // Helper function to find an available port
-async function getRandomPort(): Promise<number> {
+function getRandomPort(): number {
   const min = 10000
   const max = 65535
   return Math.floor(Math.random() * (max - min) + min)
@@ -65,7 +68,7 @@ describe('Server utilities', () => {
 
   it('should handle URL parsing correctly', async () => {
     // Import the parseSearchParams function
-    const serverModule = await import('../scripts/server.ts')
+    const serverModule = await import('../.deno-kit/host-server.ts')
     // @ts-ignore: Accessing private function for testing
     const parseSearchParams = serverModule.parseSearchParams
 

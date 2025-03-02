@@ -8,15 +8,21 @@
 
 ## Features
 
-🚀 **Guided Setup:** Quickly generate your next package with guided setup and intelligent defaults.
-🦖 **Modern Deno 2 Features:** Using the latest Deno 2 APIs and practices such as OpenTelemetry.
-🤖 **AI-Native:** Includes a complete set of Deno-optimized AI triggers and meta prompts in `.cursor/rules` to jump-start your project.
-🔒 **Safe Defaults:** Achieve a 100% [JSR score](https://jsr.io/docs/scoring) with safe defaults and comprehensive TypeScript coverage.
+🚀 **Guided Setup:** Quickly generate your next package with guided setup and
+intelligent defaults. 🦖 **Modern Deno 2 Features:** Using the latest Deno 2
+APIs and practices such as OpenTelemetry. 🤖 **AI-Native:** Includes a complete
+set of Deno-optimized AI triggers and meta prompts in `.cursor/rules` to
+jump-start your project. 🔒 **Safe Defaults:** Achieve a 100%
+[JSR score](https://jsr.io/docs/scoring) with safe defaults and comprehensive
+TypeScript coverage.
 
 ### Prerequisites
 
 - [Deno](https://deno.com/) v2.0 or newer
-- **Note:** if you're building a browser-based library you will have to add additional libraries to `compilerOptions.lib` in `deno.jsonc` such as `dom`. For more info see: [DenoDocs - CompilerOptions](https://docs.deno.com/runtime/reference/ts_config_migration/)
+- **Note:** if you're building a browser-based library you will have to add
+  additional libraries to `compilerOptions.lib` in `deno.jsonc` such as `dom`.
+  For more info see:
+  [DenoDocs - CompilerOptions](https://docs.deno.com/runtime/reference/ts_config_migration/)
 
 ### Installation
 
@@ -36,19 +42,19 @@ deno add {PACKAGE_NAME}
 ## Core Library Usage
 
 ```typescript
-import { type CreateOptions, Lib, type ReadOptions } from '{PACKAGE_NAME}'
+import { type CreateOptions, Lib, type ReadOptions } from "{PACKAGE_NAME}";
 
 // Create a new instance with custom config
-const lib = new Lib({ apiKey: 'your-api-key' })
+const lib = new Lib({ apiKey: "your-api-key" });
 
 // Create operation with strongly-typed parameters
-const createData: CreateOptions = { name: 'Test Item', value: 123 }
-const result = lib.create(createData)
-console.log(result)
+const createData: CreateOptions = { name: "Test Item", value: 123 };
+const result = lib.create(createData);
+console.log(result);
 
 // Read operation
-const readParams: ReadOptions = { id: 123 }
-const item = lib.read(readParams)
+const readParams: ReadOptions = { id: 123 };
+const item = lib.read(readParams);
 ```
 
 ## Available Types

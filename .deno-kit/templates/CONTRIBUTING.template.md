@@ -1,10 +1,15 @@
 # Contributing to {PACKAGE_NAME}
 
-Easily develop the library with a CLI, HTTP server, and WebSocket server that dynamically exposes the methods of the library, in addition to whatever tests you wish to write.
+Easily develop the library with a CLI, HTTP server, and WebSocket server that
+dynamically exposes the methods of the library, in addition to whatever tests
+you wish to write.
 
-- 🔹 **CLI:** Automatically generates stdio command handlers for each function your library exposes.
-- 🌐 **HTTP Server:** Automatically generates HTTP endpoints for each function your library exposes.
-- ⚡ **WebSocket Server:** Automatically generates JSON-RPC handlers for each function your library exposes.
+- 🔹 **CLI:** Automatically generates stdio command handlers for each function
+  your library exposes.
+- 🌐 **HTTP Server:** Automatically generates HTTP endpoints for each function
+  your library exposes.
+- ⚡ **WebSocket Server:** Automatically generates JSON-RPC handlers for each
+  function your library exposes.
 
 ## CLI Interface
 
@@ -23,8 +28,8 @@ deno task cli -- read --id=123 --include-details=true
 deno task start
 
 # After starting the server, make requests to the methods of your library (Curl, Fetch etc):
-GET {LIB_HOST}:{LIB_PORT}/lib/read?id=123
-POST {LIB_HOST}:{LIB_PORT}/lib/create
+GET {DENO_KIT_HOST}:{DENO_KIT_PORT}/lib/read?id=123
+POST {DENO_KIT_HOST}:{DENO_KIT_PORT}/lib/create
   {"name": "New Item", "value": 456}
 ```
 
@@ -33,21 +38,22 @@ POST {LIB_HOST}:{LIB_PORT}/lib/create
 ```javascript
 // After starting the server, make WebSocket requests to the methods of your library:
 
-const ws = new WebSocket(`ws://${LIB_HOST}:${LIB_PORT}/lib/read`)
+const ws = new WebSocket(`ws://${DENO_KIT_HOST}:${DENO_KIT_PORT}/lib/read`);
 ws.onopen = () => {
   ws.send(JSON.stringify({
-    jsonrpc: '2.0',
+    jsonrpc: "2.0",
     id: 1,
-    method: 'read',
+    method: "read",
     params: { id: 123 },
-  }))
-}
+  }));
+};
 ```
 
 ## Deno Tasks
 
 - `deno task server` - Start the HTTP/WebSocket server
-- `deno task server:dev` - Start the server in development mode (watch for changes)
+- `deno task server:dev` - Start the server in development mode (watch for
+  changes)
 - `deno task cli` - Run the CLI interface
 - `deno task cli:dev` - Run the CLI in development mode
 - `deno task test` - Run the tests
@@ -70,13 +76,13 @@ This library supports various environment variables for configuration:
 
 ### General Configuration
 
-- `DENO_ENV` - Environment mode (development, production)
-- `NODE_ENV` - Node.js environment mode (for compatibility)
+- `DENO_ENV` - Environment mode (development, production). You can use
+  NODE_ENVas well if you want.
 
 ### Library Configuration
 
-- `LIB_PORT` - Port for the HTTP/WebSocket server (default: 8000)
-- `LIB_HOST` - Host for the HTTP/WebSocket server (default: localhost)
+- `DENO_KIT_PORT` - Port for the HTTP/WebSocket server (default: 8000)
+- `DENO_KIT_HOST` - Host for the HTTP/WebSocket server (default: localhost)
 - `LIB_LOG_NAME` - Name for the logger output
 - `LIB_LOG_LEVEL` - Logging level (debug, verbose, info, warn, error)
 - `LIB_LOG_TAGS` - Comma-separated list of tags to include in logs
@@ -112,4 +118,5 @@ This library supports various environment variables for configuration:
 - `OTEL_SPAN_LINK_COUNT_LIMIT` - Maximum number of links per span
 - `OTEL_TRACES_SAMPLER` - Sampling strategy
 
-You can copy the `.env.example` file to `.env` and customize these variables for your environment.
+You can copy the `.env.example` file to `.env` and customize these variables for
+your environment.

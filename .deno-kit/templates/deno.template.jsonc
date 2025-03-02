@@ -5,10 +5,10 @@
   "description": "A modern Deno 2 library starter kit",
   "license": "MIT",
   "author": "{PACKAGE_AUTHOR_NAME} <{PACKAGE_AUTHOR_EMAIL}>",
-  "homepage": "https://github.com/zackiles/{PROJECT_NAME}",
+  "homepage": "https://github.com/{PACKAGE_GITHUB_USER}/{PROJECT_NAME}",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zackiles/{PROJECT_NAME}.git"
+    "url": "https://github.com/{PACKAGE_GITHUB_USER}/{PROJECT_NAME}.git"
   },
   "tasks": {
     "server": "deno run --allow-env --allow-net scripts/server.ts",
@@ -30,6 +30,8 @@
     "@opentelemetry/sdk-trace-base": "npm:@opentelemetry/sdk-trace-base@1",
     "@opentelemetry/resources": "npm:@opentelemetry/resources@1",
     "@opentelemetry/semantic-conventions": "npm:@opentelemetry/semantic-conventions@1",
+    "@std/dotenv": "jsr:@std/dotenv@0",
+    "@std/path": "jsr:@std/path@1",
     "@std/assert": "jsr:@std/assert@1",
     "@std/cli": "jsr:@std/cli@1",
     "@std/jsonc": "jsr:@std/jsonc@1",
@@ -61,7 +63,7 @@
     "include": [
       "src/",
       "test/",
-      "scripts/",
+      ".deno-kit/",
       "README.md"
     ],
     "exclude": [
@@ -84,7 +86,7 @@
     "include": [
       "src/",
       "test/",
-      "scripts/"
+      ".deno-kit/"
     ],
     "exclude": [
       "!fixtures"
@@ -119,7 +121,7 @@
       "**/__tests__/**",
       "test/**",
       "fixtures/**",
-      "scripts/**"
+      ".deno-kit/**"
     ]
   },
   // The main entry point for the library to be published

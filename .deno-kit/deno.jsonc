@@ -1,0 +1,50 @@
+{
+  // Schema deno.jsonc: @https://github.com/denoland/deno/blob/main/cli/schemas/config-file.v1.json
+  "name": "@zackiles/deno-kit",
+  "version": "0.0.1",
+  "description": "Modern, AI-native, Deno 2 library generator and starter-kit.",
+  "license": "MIT",
+  "author": "Zachary Iles <zack.iles@gmail.com>",
+  "homepage": "https://github.com/zackiles/deno-kit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zackiles/deno-kit.git"
+  },
+  // Run tasks with: deno task <task-name>
+  "tasks": {
+    "generate": "deno run --allow-all ./generate.ts",
+    "update": "deno run --allow-all ./update.ts",
+    "reset": "deno run --allow-all ./reset.ts"
+  },
+  // We don't need to define imports here. Instead, the repo where this is used provides them.
+  // When we copy the deno.jsonc template it will be put one subpath down in the root.
+  "patch": [
+    "../"
+  ],
+  "unstable": [
+    "net",
+    "http",
+    "fs",
+    "temporal",
+    "unsafe-proto",
+    "otel"
+  ],
+  "nodeModulesDir": "none",
+  "compilerOptions": {
+    "strict": true,
+    "exactOptionalPropertyTypes": true
+  },
+  // See jsr publishing: @https://docs.deno.com/runtime/reference/cli/publish/
+  "publish": {
+    "include": [
+      "*.ts",
+      "templates/*",
+      "README.md",
+      "LICENSE"
+    ]
+  },
+  // The main entry point for the library to be published
+  "exports": {
+    ".": "./main.ts"
+  }
+}

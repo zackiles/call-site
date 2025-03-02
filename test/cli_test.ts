@@ -1,7 +1,7 @@
 import { assertEquals } from '@std/assert'
 import { describe, it } from '@std/testing/bdd'
 import { Lib } from '../src/lib.ts'
-import { kebabToCamelCase, parseArgsToObject } from '../scripts/cli.ts'
+import { kebabToCamelCase, parseArgsToObject } from '../.deno-kit/host-cli.ts'
 
 describe('CLI utils', () => {
   it('should convert kebab-case to camelCase', () => {
