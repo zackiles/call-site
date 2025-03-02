@@ -60,6 +60,7 @@
     "tracestate",
     "traceparent",
     "MILLIS",
-    "msvc"
+    "msvc",
+    "denoland"
   ],
 }
