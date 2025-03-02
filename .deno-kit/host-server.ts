@@ -1,3 +1,4 @@
+#!/usr/bin/env -S deno run --allow-all
 import type { Attributes } from '@opentelemetry/api'
 import { trace } from '@opentelemetry/api'
 import { Lib } from '../src/lib.ts'
@@ -695,11 +696,50 @@ async function startServer(
     try {
       // Run server within the server context
       await withContext(serverContext, async () => {
-        // Serve requests
-        await Deno.serve({
-          port: serverPort,
-          hostname: serverHost,
-        }, handler).finished
+        // Create the server with abort controller for graceful shutdown
+        const abortController = new AbortController()
+        const { signal } = abortController
+
+        // Set up signal handlers for graceful shutdown
+        const signals: Deno.Signal[] = ['SIGINT', 'SIGTERM', 'SIGHUP']
+        const signalCleanups = signals.map((sig) => {
+          const handler = () => {
+            serverLogger.info(`Received ${sig}, shutting down gracefully...`)
+            abortController.abort()
+          }
+
+          Deno.addSignalListener(sig, handler)
+          return { signal: sig, handler }
+        })
+
+        try {
+          // Serve requests with abort signal
+          await Deno.serve({
+            port: serverPort,
+            hostname: serverHost,
+            signal,
+          }, handler).finished
+
+          serverLogger.info('Server shut down gracefully')
+        } catch (serveError) {
+          // Only throw if it's not an AbortError (which is expected during shutdown)
+          if (
+            !(serveError instanceof DOMException &&
+              serveError.name === 'AbortError')
+          ) {
+            throw serveError
+          }
+          serverLogger.info('Server aborted as requested')
+        } finally {
+          // Clean up signal handlers
+          for (const { signal, handler } of signalCleanups) {
+            try {
+              Deno.removeSignalListener(signal, handler)
+            } catch (_) {
+              // Ignore errors when removing signal handlers
+            }
+          }
+        }
       })
     } catch (serverError) {
       const error = serverError instanceof Error

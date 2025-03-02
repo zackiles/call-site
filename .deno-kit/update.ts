@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run --allow-read --allow-write --allow-run --allow-env --allow-net
+#!/usr/bin/env -S deno run --allow-all
 
 import { emptyDir } from '@std/fs'
 import { join } from '@std/path'

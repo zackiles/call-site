@@ -46,7 +46,13 @@
   "nodeModulesDir": "none",
   "compilerOptions": {
     "strict": true,
-    "exactOptionalPropertyTypes": true
+    "exactOptionalPropertyTypes": true,
+    "lib": [
+      "esnext",
+      "deno.window",
+      "deno.ns",
+      "deno.unstable"
+    ]
   },
   // See jsr publishing: @https://docs.deno.com/runtime/reference/cli/publish/
   "publish": {

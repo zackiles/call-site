@@ -1,3 +1,4 @@
+#!/usr/bin/env -S deno run --allow-all
 import { parseArgs } from '@std/cli'
 import { Lib } from '../src/lib.ts'
 import { Logger } from '../src/logger.ts'

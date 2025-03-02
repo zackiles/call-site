@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run --allow-read --allow-write
+#!/usr/bin/env -S deno run --allow-all
 
 import { join } from '@std/path'
 import { getConfig } from './config.ts'

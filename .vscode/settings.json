@@ -59,6 +59,7 @@
     "parentbased",
     "tracestate",
     "traceparent",
-    "MILLIS"
+    "MILLIS",
+    "msvc"
   ],
 }

@@ -19,7 +19,8 @@
     "cli:telemetry": "OTEL_DENO=true deno run --allow-all scripts/cli.ts",
     "test": "deno test --allow-all",
     "test:telemetry": "OTEL_DENO=true deno test --allow-all",
-    "prepare": "deno fmt && deno lint"
+    "prepare": "deno fmt && deno lint",
+    "kit": "deno run --allow-all ./.deno-kit/kit.ts"
   },
   // Import maps. Prefer import "@scope/package" syntax in code.
   "imports": {
@@ -67,7 +68,7 @@
       "README.md"
     ],
     "exclude": [
-      // denp-kit CLI
+      // deno-kit CLI
       "kit",
       "!fixtures"
     ]
@@ -83,7 +84,7 @@
       "exclude": [
         // LLMs don't play well with this rule.
         "no-explicit-any"
-      ],
+      ]
     },
     "include": [
       "src/",
@@ -91,7 +92,7 @@
       ".deno-kit/"
     ],
     "exclude": [
-      // denp-kit CLI
+      // o-kit CLI
       "kit",
       "!fixtures"
     ],
@@ -126,7 +127,7 @@
       "test/**",
       "fixtures/**",
       ".deno-kit/**",
-      // denp-kit CLI
+      // deno-kit CLI
       "kit"
     ]
   },

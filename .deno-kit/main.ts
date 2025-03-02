@@ -35,20 +35,21 @@ async function runCommand(scriptName: string): Promise<void> {
       scriptPath,
       ...Deno.args.slice(1),
     ],
-    stdout: 'piped',
-    stderr: 'piped',
+    stdout: 'inherit',
+    stderr: 'inherit',
   })
 
-  // Run the command and collect output
-  const { code, stdout, stderr } = await command.output()
+  // Spawn the process (instead of using output() which waits for completion)
+  const process = command.spawn()
 
-  // Print the output
-  await Deno.stdout.write(stdout)
-  await Deno.stderr.write(stderr)
+  // Wait for the process to complete and get its status
+  const status = await process.status
 
   // If the command failed, exit with the same code
-  if (code !== 0) {
-    throw new Error(`Command ${scriptName} failed with exit code ${code}`)
+  if (status.code !== 0) {
+    // Instead of throwing an error, exit with the same code
+    // This propagates the exit code up to the parent process
+    Deno.exit(status.code)
   }
 }
 
