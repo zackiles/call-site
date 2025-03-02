@@ -63,10 +63,11 @@
     "include": [
       "src/",
       "test/",
-      ".deno-kit/",
-      "README.md"
+      "README.md",
+      "CONTRIBUTING.md"
     ],
     "exclude": [
+      ".deno-kit/",
       "!fixtures"
     ]
   },
@@ -86,9 +87,9 @@
     "include": [
       "src/",
       "test/",
-      ".deno-kit/"
     ],
     "exclude": [
+      ".deno-kit/**",
       "!fixtures"
     ],
     "report": "pretty"

@@ -1,7 +1,7 @@
 {
   // Schema deno.jsonc: @https://github.com/denoland/deno/blob/main/cli/schemas/config-file.v1.json
   "name": "@zackiles/deno-kit",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A modern Deno 2 library starter kit",
   "license": "MIT",
   "author": "Zachary Iles <{zack.iles@gmail.com}>",
@@ -64,36 +64,33 @@
     "include": [
       "src/",
       "test/",
-      ".deno-kit/",
-      "README.md"
+      "README.md",
+      "CONTRIBUTING.md"
     ],
     "exclude": [
-      // deno-kit CLI
-      "kit",
+      ".deno-kit/**",
       "!fixtures"
     ]
   },
   // Schema for lint rules: @https://github.com/denoland/deno/blob/main/cli/schemas/lint-rules.v1.json
   "lint": {
-    "enabled": true,
     "rules": {
       // Possible tags: "fresh", "jsr", "jsx", "react", "recommended"
       "tags": [
         "recommended"
       ],
       "exclude": [
-        // LLMs don't play well with this rule.
-        "no-explicit-any"
+        // LLMs don't play well with require-await.
+        "require-await"
       ]
     },
     "include": [
       "src/",
-      "test/",
-      ".deno-kit/"
+      "test/"
     ],
     "exclude": [
       // o-kit CLI
-      "kit",
+      ".deno-kit/**",
       "!fixtures"
     ],
     "report": "pretty"
@@ -127,8 +124,6 @@
       "test/**",
       "fixtures/**",
       ".deno-kit/**",
-      // deno-kit CLI
-      "kit"
     ]
   },
   // The main entry point for the library to be published
