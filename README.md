@@ -1,8 +1,8 @@
-# "{PACKAGE_NAME}"
+# Deno-Kit
 
-[![JSR Score](https://jsr.io/badges/{PACKAGE_NAME}/score)](https://jsr.io/{PACKAGE_NAME})
-[![JSR](https://jsr.io/badges/{PACKAGE_NAME})](https://jsr.io/{PACKAGE_NAME})
-[![JSR Scope](https://jsr.io/badges/{PACKAGE_SCOPE})](https://jsr.io/{PACKAGE_SCOPE})
+[![JSR Score](https://jsr.io/badges/@zackile/deno-kit/score)](https://jsr.io/@zackile/deno-kit)
+[![JSR](https://jsr.io/badges/@zackiles/deno-kit)](https://jsr.io/@zackiles/deno-kit)
+[![JSR Scope](https://jsr.io/badges/@zackiles)](https://jsr.io/@zackiles)
 
 A modern Deno 2 library starter kit with strongly typed CRUD operations and optional CLI, HTTP, and WebSocket interfaces for testing.
 
