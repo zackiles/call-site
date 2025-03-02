@@ -20,7 +20,7 @@
     "test": "deno test --allow-all",
     "test:telemetry": "OTEL_DENO=true deno test --allow-all",
     "prepare": "deno fmt && deno lint",
-    "kit": "deno run --allow-all ./.deno-kit/kit.ts"
+    "kit": "deno run --allow-all ./.deno-kit/main.ts"
   },
   // Import maps. Prefer import "@scope/package" syntax in code.
   "imports": {

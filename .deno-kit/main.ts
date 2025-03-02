@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run --allow-read --allow-write --allow-run --allow-env --allow-net
+#!/usr/bin/env -S deno run --allow-all
 import { getConfig } from './config.ts'
 import { join } from '@std/path'
 const config = await getConfig()

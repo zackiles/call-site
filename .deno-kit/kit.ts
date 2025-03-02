@@ -1,5 +1,3 @@
-#!/usr/bin/env -S deno run --allow-all
-
 /**
  * This script serves as an entry point for the Deno application.
  * It forwards all arguments to the main.ts script.
@@ -19,9 +17,19 @@ const command = new Deno.Command(denoExecutable, {
   stdout: 'inherit',
   stderr: 'inherit',
 })
-
-// Spawn the process
-const process = command.spawn()
+console.log('command', command)
+console.log('.deno-kit/main.ts')
+let process: Deno.ChildProcess | undefined = undefined
+try {
+  // Spawn the process
+  process = command.spawn()
+} catch (err) {
+  console.error(
+    `Error running command: ${
+      err instanceof Error ? err.message : String(err)
+    }`,
+  )
+}
 
 // Set up signal handlers to propagate signals to child process
 function setupSignalHandlers(): () => void {
@@ -64,13 +72,16 @@ const cleanupSignalHandlers = setupSignalHandlers()
 
 try {
   // Wait for the process to complete
-  const status = await process.status
+  const status = await process?.status
+  if (!status) {
+    throw new Error('Process not found')
+  }
 
   // Clean up signal handlers
   cleanupSignalHandlers()
 
   // Exit with the same code as the child process
-  Deno.exit(status.code)
+  Deno.exit(status?.code)
 } catch (err) {
   console.error(
     `Error running command: ${

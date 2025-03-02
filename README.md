@@ -8,21 +8,24 @@ A modern Deno 2 library starter kit with strongly typed CRUD operations and opti
 
 ## Getting Started
 
-If you just cloned this starter kit, run `./deno-kit generate`. It'll prompt you for various values to setup the repo and automatically configure it for you. It even uses default values retrieved from git to make it easy for you. If you make a mistake and want to reset you can run `./deno-kit reset`.
+If you just cloned this starter kit, run `deno task kit generate`. It'll prompt you for various values to setup the repo and automatically configure it for you. It even uses default values retrieved from git to make it easy for you. If you make a mistake and want to reset you can run `deno task kit reset`.
 
 🎉 **That's it!** You'll have a complete working directory and library and package, and no longer need to use `deno-kit`, if you want, you can even remove the `.deno-kit` folder. Now explore the rest of the tasks in `deno.jsonc` and being development! Once you're ready to publish your library run `deno publish`.
 
 **NOTE:** Running the template generator will replace this README.md. If you need to access it after, you can find it in `.deno-kit/templates/README.md.backup` or on [github.com/zackiles/deno-kit](https://github.com/zackiles/deno-kit/blob/main/README.md).
 
 ```text
-// A freshly cloned repo will have these template strings found throughout the code base:
+// A freshly cloned repo will have these template strings found throughout the code base. All of them are optional. They are:
 
-{PACKAGE_NAME}
-{PACKAGE_VERSION}
-{PACKAGE_AUTHOR_NAME}
-{PACKAGE_AUTHOR_EMAIL}
 
-// Running "deno run template.ts" will replace them.
+{PACKAGE_NAME}: Required. e.g "@scope/package-name". Determines {PACKAGE_SCOPE}
+{PACKAGE_VERSION}: Defaults to 0.0.1
+{PACKAGE_DESCRIPTION} Defaults to ""
+{PACKAGE_GITHUB_USER}: Defaults to PACKAGE_SCOPE
+{PACKAGE_AUTHOR_NAME}: Defaults to "git config user.name"
+{PACKAGE_AUTHOR_EMAIL}: Defaults to "git config user.email"
+
+// Running "deno task kit generate" will replace them.
 ```
 
 ## Features
