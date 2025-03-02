@@ -24,4 +24,5 @@ function getPackageInfo(): { name: string; version: string } {
     )
   }
 }
+
 export { getPackageInfo }

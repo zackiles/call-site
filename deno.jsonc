@@ -19,8 +19,7 @@
     "cli:telemetry": "OTEL_DENO=true deno run --allow-all scripts/cli.ts",
     "test": "deno test --allow-all",
     "test:telemetry": "OTEL_DENO=true deno test --allow-all",
-    "fmt": "deno fmt",
-    "lint": "deno lint"
+    "prepare": "deno fmt && deno lint"
   },
   // Import maps. Prefer import "@scope/package" syntax in code.
   "imports": {
@@ -30,6 +29,7 @@
     "@opentelemetry/sdk-trace-base": "npm:@opentelemetry/sdk-trace-base@1",
     "@opentelemetry/resources": "npm:@opentelemetry/resources@1",
     "@opentelemetry/semantic-conventions": "npm:@opentelemetry/semantic-conventions@1",
+    "@std/fs": "jsr:@std/fs@1",
     "@std/dotenv": "jsr:@std/dotenv@0",
     "@std/path": "jsr:@std/path@1",
     "@std/assert": "jsr:@std/assert@1",
@@ -67,6 +67,8 @@
       "README.md"
     ],
     "exclude": [
+      // denp-kit CLI
+      "kit",
       "!fixtures"
     ]
   },
@@ -89,6 +91,8 @@
       ".deno-kit/"
     ],
     "exclude": [
+      // denp-kit CLI
+      "kit",
       "!fixtures"
     ],
     "report": "pretty"
@@ -121,7 +125,9 @@
       "**/__tests__/**",
       "test/**",
       "fixtures/**",
-      ".deno-kit/**"
+      ".deno-kit/**",
+      // denp-kit CLI
+      "kit"
     ]
   },
   // The main entry point for the library to be published

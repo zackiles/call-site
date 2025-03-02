@@ -1,10 +1,15 @@
 import { assertEquals, assertExists } from '@std/assert'
 import { describe, it } from '@std/testing/bdd'
+import { join } from '@std/path'
+import { getConfig } from '../.deno-kit/config.ts'
 import { startServer } from '../.deno-kit/host-server.ts'
 import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from '../.deno-kit/host-server.ts'
+
+// Get configuration to access kitDir
+const config = await getConfig()
 
 // Helper function to find an available port
 function getRandomPort(): number {
@@ -68,7 +73,7 @@ describe('Server utilities', () => {
 
   it('should handle URL parsing correctly', async () => {
     // Import the parseSearchParams function
-    const serverModule = await import('../.deno-kit/host-server.ts')
+    const serverModule = await import(join(config.kitDir, 'host-server.ts'))
     // @ts-ignore: Accessing private function for testing
     const parseSearchParams = serverModule.parseSearchParams
 

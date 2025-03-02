@@ -1,7 +1,7 @@
 #!/usr/bin/env -S deno run --allow-read --allow-write --allow-run --allow-env --allow-net
 
-import { emptyDir, ensureDir } from 'jsr:@std/fs@1'
-import { join } from 'jsr:@std/path@1'
+import { emptyDir } from '@std/fs'
+import { join } from '@std/path'
 
 // GitHub repository containing the cursor config files
 const CURSOR_CONFIG_REPO = 'https://github.com/zackiles/cursor-config'
@@ -9,17 +9,15 @@ const CURSOR_CONFIG_REPO = 'https://github.com/zackiles/cursor-config'
 /**
  * Fetches and copies the .cursor folder from the cursor-config GitHub repository
  */
-export async function update(): Promise<void> {
+async function update(): Promise<void> {
   console.log('🔄 Fetching and copying Cursor configuration from GitHub...')
 
-  // Create temporary directory for cloning
-  const tempDir = './__temp_cursor_config'
+  // Create temporary directory for cloning using Deno's standard API
+  const tempDir = await Deno.makeTempDir({
+    prefix: 'deno-kit',
+  })
 
   try {
-    // Ensure temp directory exists and is empty
-    await ensureDir(tempDir)
-    await emptyDir(tempDir)
-
     // Clone the repository
     console.log(`📥 Cloning ${CURSOR_CONFIG_REPO} into temporary directory...`)
     const cloneCommand = new Deno.Command('git', {
@@ -99,3 +97,6 @@ export async function update(): Promise<void> {
 if (import.meta.main) {
   await update()
 }
+
+// Export the function at the bottom of the file
+export { update }

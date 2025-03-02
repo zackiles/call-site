@@ -16,6 +16,20 @@
     "update": "deno run --allow-all ./update.ts",
     "reset": "deno run --allow-all ./reset.ts"
   },
+  "fmt": {
+    "lineWidth": 80,
+    "semiColons": false,
+    "useTabs": false,
+    "indentWidth": 2,
+    "singleQuote": true,
+    "proseWrap": "preserve",
+    "include": [
+      "*.ts"
+    ],
+    "exclude": [
+      "templates/*"
+    ]
+  },
   // We don't need to define imports here. Instead, the repo where this is used provides them.
   // When we copy the deno.jsonc template it will be put one subpath down in the root.
   "patch": [
@@ -38,9 +52,7 @@
   "publish": {
     "include": [
       "*.ts",
-      "templates/*",
-      "README.md",
-      "LICENSE"
+      "templates/*"
     ]
   },
   // The main entry point for the library to be published

@@ -1,4 +1,4 @@
-import { fromFileUrl } from '@std/path'
+import { fromFileUrl, join } from '@std/path'
 import { load } from '@std/dotenv'
 
 // Interface for our configuration
@@ -8,6 +8,7 @@ interface Config {
   projectArgs: string[]
   projectDir: string
   env: Record<string, string>
+  templatesDir: string
 }
 
 // Singleton class
@@ -41,6 +42,9 @@ class ConfigSingleton {
       // Get the project directory (one level up from kitDir)
       const projectDir = fromFileUrl(new URL('..', import.meta.url))
 
+      // Define the templates directory path
+      const templatesDir = join(kitDir, 'templates')
+
       // Load environment variables from .env file
       const env = await load()
 
@@ -49,6 +53,7 @@ class ConfigSingleton {
         kitArgs,
         projectArgs,
         projectDir,
+        templatesDir,
         env,
       }
     } catch (error) {
@@ -65,12 +70,12 @@ class ConfigSingleton {
   }
 }
 
-// Export an async function that returns the initialized config
-export async function getConfig(): Promise<Config> {
+// An async function that returns the initialized config
+async function getConfig(): Promise<Config> {
   const instance = ConfigSingleton.getInstance()
   await instance.init()
   return instance.getConfig()
 }
 
-// Default export for convenience
+export { getConfig }
 export default getConfig
