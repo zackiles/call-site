@@ -1,6 +1,6 @@
 # Deno-Kit
 
-[![JSR Score](https://jsr.io/badges/@zackile/deno-kit/score)](https://jsr.io/@zackile/deno-kit)
+[![JSR Score](https://jsr.io/badges/@zackile/deno-kit/score)](https://jsr.io/@zackiles/deno-kit)
 [![JSR](https://jsr.io/badges/@zackiles/deno-kit)](https://jsr.io/@zackiles/deno-kit)
 [![JSR Scope](https://jsr.io/badges/@zackiles)](https://jsr.io/@zackiles)
 
