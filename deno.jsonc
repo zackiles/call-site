@@ -1,8 +1,8 @@
 {
   // Schema deno.jsonc: @https://github.com/denoland/deno/blob/main/cli/schemas/config-file.v1.json
   "name": "@zackiles/deno-kit",
-  "version": "0.0.3",
-  "description": "A modern Deno 2 library starter kit",
+  "version": "0.0.4",
+  "description": "Modern Deno 2 library starter kit",
   "license": "MIT",
   "author": "Zachary Iles <{zack.iles@gmail.com}>",
   "homepage": "https://github.com/zackiles/deno-kit",
@@ -123,7 +123,7 @@
       "**/__tests__/**",
       "test/**",
       "fixtures/**",
-      ".deno-kit/**",
+      ".deno-kit/**"
     ]
   },
   // The main entry point for the library to be published

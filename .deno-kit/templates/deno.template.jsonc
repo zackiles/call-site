@@ -82,11 +82,11 @@
       "exclude": [
         // LLMs don't play well with this rule.
         "no-explicit-any"
-      ],
+      ]
     },
     "include": [
       "src/",
-      "test/",
+      "test/"
     ],
     "exclude": [
       ".deno-kit/**",
