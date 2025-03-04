@@ -3,7 +3,7 @@ import type { Attributes } from '@opentelemetry/api'
 import { trace } from '@opentelemetry/api'
 import { Lib } from '../src/lib.ts'
 import { getAvailablePort } from '@std/net'
-import { Logger } from '../src/logger.ts'
+import { Logger } from '../src/core/logger.ts'
 import {
   createContextWithSpan,
   createSpan,
@@ -15,17 +15,8 @@ import {
   TRACE_STATE_HEADER,
   withContext,
   withSpan,
-} from '../src/telemetry.ts'
-import type {
-  CreateOptions,
-  CreateResult,
-  DestroyOptions,
-  DestroyResult,
-  ReadOptions,
-  ReadResult,
-  UpdateOptions,
-  UpdateResult,
-} from '../src/types.ts'
+} from '../src/core/telemetry.ts'
+import type { LibRequest, LibResult } from '../src/types.ts'
 
 // Create loggers for server components
 const serverLogger = Logger.get('server')
@@ -153,11 +144,10 @@ function parseSearchParams(url: URL): Record<string, unknown> {
 
 // Method map for typed execution with proper error handling
 const methodMap = {
-  create: (lib: Lib, params: CreateOptions): CreateResult => lib.create(params),
-  read: (lib: Lib, params: ReadOptions): ReadResult => lib.read(params),
-  update: (lib: Lib, params: UpdateOptions): UpdateResult => lib.update(params),
-  destroy: (lib: Lib, params: DestroyOptions): DestroyResult =>
-    lib.destroy(params),
+  create: (lib: Lib, params: LibRequest): LibResult => lib.create(params),
+  read: (lib: Lib, params: LibRequest): LibResult => lib.read(params),
+  update: (lib: Lib, params: LibRequest): LibResult => lib.update(params),
+  destroy: (lib: Lib, params: LibRequest): LibResult => lib.destroy(params),
 }
 
 type MethodType = keyof typeof methodMap
@@ -169,7 +159,7 @@ async function executeLibMethod(
   method: string,
   lib: Lib,
   params: Record<string, unknown>,
-): Promise<unknown> {
+): Promise<LibResult> {
   const validMethod = method as MethodType
 
   // Get the current context to maintain the trace chain
@@ -184,7 +174,7 @@ async function executeLibMethod(
     }
 
     return withSpan(`lib.${method}`, async () => {
-      return methodMap[validMethod](lib, params)
+      return methodMap[validMethod](lib, params as LibRequest)
     }, {
       kind: 'server',
       attributes,
@@ -653,7 +643,7 @@ function handler(request: Request): Response | Promise<Response> {
  * @param port The port to start the server on
  * @param options Server configuration options
  */
-async function startServer(
+async function runServer(
   port?: number,
   options: TelemetryOptions = {},
 ): Promise<void> {
@@ -771,7 +761,7 @@ async function startServer(
 
 // Start the server if this module is executed directly
 if (import.meta.main) {
-  startServer().catch((error) => {
+  runServer().catch((error) => {
     const formattedError = error instanceof Error
       ? error
       : new Error(String(error))
@@ -782,4 +772,4 @@ if (import.meta.main) {
 
 // Export all interfaces and functions at the bottom of the file
 export type { JsonRpcRequest, JsonRpcResponse }
-export { makeContextualRequest, parseSearchParams, startServer }
+export { makeContextualRequest, parseSearchParams, runServer }

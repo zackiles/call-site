@@ -61,6 +61,7 @@
     "traceparent",
     "MILLIS",
     "msvc",
-    "denoland"
+    "denoland",
+    "dotenv"
   ],
 }

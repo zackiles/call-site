@@ -38,7 +38,7 @@ interface TemplateValues {
 const TEMPLATE_MAPPINGS = {
   [join(config.templatesDir, 'README.template.md')]: './README.md',
   [join(config.templatesDir, 'deno.template.jsonc')]: './deno.jsonc',
-  [join(config.templatesDir, 'CONTRIBUTING.template..MD')]: './CONTRIBUTING.md', // Note the double dot
+  [join(config.templatesDir, 'CONTRIBUTING.template.MD')]: './CONTRIBUTING.md',
   [join(config.templatesDir, 'LICENSE.template')]: './LICENSE',
 }
 

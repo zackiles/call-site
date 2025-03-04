@@ -1,7 +1,10 @@
 {
   "version": "4",
   "specifiers": {
+    "jsr:@std/cli@1": "1.0.13",
     "jsr:@std/dotenv@0": "0.225.3",
+    "jsr:@std/fmt@*": "1.0.5",
+    "jsr:@std/jsonc@1": "1.0.1",
     "jsr:@std/net@1": "1.0.4",
     "jsr:@std/path@1": "1.0.8",
     "npm:@opentelemetry/api-logs@0": "0.57.2",
@@ -9,8 +12,17 @@
     "npm:@opentelemetry/sdk-logs@0": "0.57.2_@opentelemetry+api@1.9.0"
   },
   "jsr": {
+    "@std/cli@1.0.13": {
+      "integrity": "5db2d95ab2dca3bca9fb6ad3c19908c314e93d6391c8b026725e4892d4615a69"
+    },
     "@std/dotenv@0.225.3": {
       "integrity": "a95e5b812c27b0854c52acbae215856d9cce9d4bbf774d938c51d212711e8d4a"
+    },
+    "@std/fmt@1.0.5": {
+      "integrity": "0cfab43364bc36650d83c425cd6d99910fc20c4576631149f0f987eddede1a4d"
+    },
+    "@std/jsonc@1.0.1": {
+      "integrity": "6b36956e2a7cbb08ca5ad7fbec72e661e6217c202f348496ea88747636710dda"
     },
     "@std/net@1.0.4": {
       "integrity": "2f403b455ebbccf83d8a027d29c5a9e3a2452fea39bb2da7f2c04af09c8bc852"

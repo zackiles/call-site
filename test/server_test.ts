@@ -1,15 +1,31 @@
+/**
+ * @module server_test
+ *
+ * Tests for the server functionality provided by `.deno-kit/start-server.ts`.
+ * This module verifies that the HTTP and WebSocket server implementations correctly
+ * handle all CRUD operations exposed by the library in `src/`.
+ *
+ * Key test areas:
+ * - HTTP endpoints for CRUD operations
+ * - WebSocket JSON-RPC interface
+ * - URL parameter parsing
+ * - Error handling and responses
+ *
+ * @note If you modify the library's API in `src/`, you'll need to update these tests
+ * to match your new API structure, particularly:
+ * - The test data structures in HTTP/WebSocket test cases
+ * - The expected responses and validations
+ * - Any new or modified endpoints
+ */
+
 import { assertEquals, assertExists } from '@std/assert'
 import { describe, it } from '@std/testing/bdd'
 import { join } from '@std/path'
-import { getConfig } from '../.deno-kit/config.ts'
-import { startServer } from '../.deno-kit/host-server.ts'
+import { parseSearchParams, startServer } from '../.deno-kit/start-server.ts'
 import type {
   JsonRpcRequest,
   JsonRpcResponse,
-} from '../.deno-kit/host-server.ts'
-
-// Get configuration to access kitDir
-const config = await getConfig()
+} from '../.deno-kit/start-server.ts'
 
 // Helper function to find an available port
 function getRandomPort(): number {
@@ -72,14 +88,6 @@ describe('Server utilities', () => {
   })
 
   it('should handle URL parsing correctly', async () => {
-    // Import the parseSearchParams function
-    const serverModule = await import(join(config.kitDir, 'host-server.ts'))
-    // @ts-ignore: Accessing private function for testing
-    const parseSearchParams = serverModule.parseSearchParams
-
-    // Skip if function wasn't loaded
-    if (!parseSearchParams) return
-
     // Create a test URL with search parameters
     const url = new URL(
       'http://localhost:8000/lib/read?id=123&active=true&name=test&empty=null&num=456',

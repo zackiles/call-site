@@ -19,16 +19,19 @@
     "cli:telemetry": "OTEL_DENO=true deno run --allow-all scripts/cli.ts",
     "test": "deno test --allow-all",
     "test:telemetry": "OTEL_DENO=true deno test --allow-all",
-    "prepare": "deno fmt && deno lint"
+    "prepare": "deno fmt && deno lint",
+    "kit": "deno run --allow-all .deno-kit/main.ts"
   },
   // Import maps. Prefer import "@scope/package" syntax in code.
   "imports": {
+    // Most of these are needed for deno-kit, be careful removing them.
     "@opentelemetry/api": "npm:@opentelemetry/api@1",
     "@opentelemetry/api-logs": "npm:@opentelemetry/api-logs@0",
     "@opentelemetry/sdk-logs": "npm:@opentelemetry/sdk-logs@0",
     "@opentelemetry/sdk-trace-base": "npm:@opentelemetry/sdk-trace-base@1",
     "@opentelemetry/resources": "npm:@opentelemetry/resources@1",
     "@opentelemetry/semantic-conventions": "npm:@opentelemetry/semantic-conventions@1",
+    "@std/fmt": "jsr:@std/fmt@1",
     "@std/fs": "jsr:@std/fs@1",
     "@std/dotenv": "jsr:@std/dotenv@0",
     "@std/path": "jsr:@std/path@1",
@@ -106,7 +109,6 @@
     "lib": [
       "esnext",
       "deno.window",
-      "deno.ns",
       "deno.unstable"
     ]
   },

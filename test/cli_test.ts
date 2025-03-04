@@ -1,7 +1,27 @@
+/**
+ * @module cli_test
+ *
+ * Tests for the CLI functionality provided by `.deno-kit/run-cli.ts`.
+ * This module verifies that the command-line interface correctly interacts
+ * with the library in `src/` through utility functions and command processing.
+ *
+ * Key test areas:
+ * - Parameter conversion (kebab-case to camelCase)
+ * - CLI argument parsing
+ * - Integration with library methods
+ * - Command availability and structure
+ *
+ * @note If you modify the library's API in `src/`, you'll need to update these tests
+ * to match your new API structure, particularly:
+ * - The expected method names in the Lib class integration test
+ * - Any new parameter conversion cases
+ * - Command structure validations
+ */
+
 import { assertEquals } from '@std/assert'
 import { describe, it } from '@std/testing/bdd'
 import { Lib } from '../src/lib.ts'
-import { kebabToCamelCase, parseArgsToObject } from '../.deno-kit/host-cli.ts'
+import { kebabToCamelCase, parseArgsToObject } from '../.deno-kit/run-cli.ts'
 
 describe('CLI utils', () => {
   it('should convert kebab-case to camelCase', () => {

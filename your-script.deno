@@ -1,5 +1,0 @@
-#!/usr/bin/env -S deno run --cwd=/path/to/your/directory --allow-read --allow-write
-
-// Your script will now run in the specified directory
-//deno compile --target aarch64-apple-darwin main.ts
-// Rest of your script... 

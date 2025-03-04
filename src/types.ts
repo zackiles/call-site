@@ -1,5 +1,6 @@
 /**
- * Core type definitions for the library
+ * Internal types for the Library.
+ * Re-export them in `mod.ts` if you'd like to expose them to consumers as well.
  */
 
 /**
@@ -9,44 +10,11 @@ interface LibConfig {
   [key: string]: unknown
 }
 
-/**
- * Generic type for CRUD operation options and results
- */
-interface CrudOptions {
+type CrudOperation = {
   [key: string]: unknown
 }
 
-interface CrudResult {
-  [key: string]: unknown
-}
+type LibRequest = CrudOperation
+type LibResult = CrudOperation
 
-/**
- * Aliases for each CRUD operation - all share the same underlying types
- * but provide semantic clarity at API boundaries
- */
-// CRUD operation aliases - Using common base types for type safety
-// while maintaining semantic differentiation in API signatures
-type CreateOptions = CrudOptions
-type CreateResult = CrudResult
-type ReadOptions = CrudOptions
-type ReadResult = CrudResult
-type UpdateOptions = CrudOptions
-type UpdateResult = CrudResult
-type DestroyOptions = CrudOptions
-type DestroyResult = CrudResult
-
-export type {
-  // Operation-specific aliases
-  CreateOptions,
-  CreateResult,
-  // Base types
-  CrudOptions,
-  CrudResult,
-  DestroyOptions,
-  DestroyResult,
-  LibConfig,
-  ReadOptions,
-  ReadResult,
-  UpdateOptions,
-  UpdateResult,
-}
+export type { LibConfig, LibRequest, LibResult }

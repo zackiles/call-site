@@ -1,17 +1,104 @@
 #!/usr/bin/env -S deno run --allow-all
 import { getConfig } from './config.ts'
 import { join } from '@std/path'
+import { blue, bold, cyan, dim, green, red, yellow } from 'jsr:@std/fmt/colors'
+
+const KIT_NAME = 'deno kit'
+
 const config = await getConfig()
+
+// Create a logger for the main process with colored output
+const logger = {
+  info: (msg: string, ...args: unknown[]) =>
+    console.log(`${bold(green(`[${KIT_NAME}]`))} ${msg}`, ...args),
+  error: (msg: string, ...args: unknown[]) =>
+    console.error(`${bold(red(`[${KIT_NAME}] ❌`))} ${msg}`, ...args),
+  debug: (msg: string, ...args: unknown[]) =>
+    console.debug(`${bold(blue(`[${KIT_NAME}]`))} ${msg}`, ...args),
+  warn: (msg: string, ...args: unknown[]) =>
+    console.warn(`${bold(yellow(`[${KIT_NAME}] ⚠`))} ${msg}`, ...args),
+  // Help menu specific methods
+  helpTitle: (title: string) => console.log(`\n${bold(cyan(title))}`),
+  helpUsage: (usage: string) => console.log(`${dim(usage)}`),
+  helpSection: (title: string) => console.log(`\n${bold(blue(title))}`),
+  helpCommand: (command: string, description: string, padding: number) => {
+    const paddingSpaces = ' '.repeat(padding - command.length + 2)
+    console.log(`  ${bold(green(command))}${paddingSpaces}${dim(description)}`)
+  },
+  helpNote: (note: string) => console.log(`\n${dim(note)}`),
+}
+
 /**
- * Map of commands to their corresponding script file names
+ * Map of commands to their corresponding configuration
  * Commands handled locally (like "help") are not included
  */
-const COMMAND_MAP: Record<string, string> = {
-  'generate': 'generate.ts',
-  'reset': 'reset.ts',
-  'update': 'update.ts',
-  'start': 'host-server.ts',
-  'cli': 'host-cli.ts',
+const COMMAND_MAP: Record<string, {
+  commandPath: string
+  commandDescription: string
+}> = {
+  'setup': {
+    commandPath: 'setup.ts',
+    commandDescription: 'Setup a new Deno library project',
+  },
+  'reset': {
+    commandPath: 'reset.ts',
+    commandDescription: 'Restore files from backups',
+  },
+  'update': {
+    commandPath: 'update.ts',
+    commandDescription: 'Update the Cursor configuration from GitHub',
+  },
+  'server': {
+    commandPath: 'run-server.ts',
+    commandDescription: 'Start the HTTP and WebSocket server for your library',
+  },
+  'cli': {
+    commandPath: 'run-cli.ts',
+    commandDescription: 'Run the CLI interface for testing library functions',
+  },
+}
+
+/**
+ * Set up signal handlers for graceful shutdown
+ * @returns A cleanup function to remove the signal handlers
+ */
+function setupSignalHandlers(childProcess?: Deno.ChildProcess): () => void {
+  const signals: Deno.Signal[] = ['SIGINT', 'SIGTERM', 'SIGHUP']
+  const handlers: { signal: Deno.Signal; handler: () => void }[] = []
+
+  for (const signal of signals) {
+    const handler = () => {
+      logger.info(`Received ${signal}, initiating graceful shutdown...`)
+
+      // If we have a child process, let it handle the signal
+      // The signal will be automatically propagated to the child
+      if (childProcess) {
+        logger.debug('Waiting for child process to handle signal...')
+      } else {
+        // If no child process, exit gracefully
+        logger.info('No child process, exiting gracefully...')
+        Deno.exit(0)
+      }
+    }
+
+    try {
+      Deno.addSignalListener(signal, handler)
+      handlers.push({ signal, handler })
+    } catch (error) {
+      logger.error(`Failed to set up ${signal} handler:`, error)
+    }
+  }
+
+  // Return cleanup function
+  return () => {
+    for (const { signal, handler } of handlers) {
+      try {
+        Deno.removeSignalListener(signal, handler)
+      } catch (_) {
+        // Ignore errors when removing signal handlers
+      }
+    }
+  }
 }
 
 /**
@@ -27,29 +114,68 @@ async function runCommand(scriptName: string): Promise<void> {
   // Get the full path to the script using config.kitDir
   const scriptPath = join(config.kitDir, scriptName)
 
+  // Find the command in args to know where to start slicing from
+  // Handle both 'cli' and 'run-cli' as valid command names
+  const baseCommand = scriptName.replace('.ts', '')
+  const shortCommand = baseCommand.replace('run-', '')
+  const commandIndex = Deno.args.findIndex((arg) =>
+    arg === baseCommand || arg === shortCommand
+  )
+  const commandArgs = commandIndex >= 0 ? Deno.args.slice(commandIndex + 1) : []
+
+  // Debug logging
+  logger.debug('Running command with:', {
+    scriptName,
+    scriptPath,
+    baseCommand,
+    shortCommand,
+    originalArgs: Deno.args,
+    commandIndex,
+    commandArgs,
+  })
+
   // Create the command with the same permissions
   const command = new Deno.Command(denoExecutable, {
     args: [
       'run',
       '--allow-all',
       scriptPath,
-      ...Deno.args.slice(1),
+      ...commandArgs,
     ],
     stdout: 'inherit',
     stderr: 'inherit',
+    env: {
+      ...Deno.env.toObject(), // Pass through all environment variables
+      FORCE_COLOR: '1', // Ensure colors work in child process
+    },
   })
 
-  // Spawn the process (instead of using output() which waits for completion)
+  // Log the full command being executed
+  logger.debug('Executing command:', {
+    executable: denoExecutable,
+    fullArgs: ['run', '--allow-all', scriptPath, ...commandArgs],
+  })
+
+  // Spawn the process
   const process = command.spawn()
 
-  // Wait for the process to complete and get its status
-  const status = await process.status
+  // Set up signal handlers that will wait for the child to exit
+  const cleanupSignalHandlers = setupSignalHandlers(process)
 
-  // If the command failed, exit with the same code
-  if (status.code !== 0) {
-    // Instead of throwing an error, exit with the same code
-    // This propagates the exit code up to the parent process
-    Deno.exit(status.code)
+  try {
+    // Wait for the process to complete and get its status
+    const status = await process.status
+
+    // If the command failed, exit with the same code
+    if (status.code !== 0) {
+      // Instead of throwing an error, exit with the same code
+      // This propagates the exit code up to the parent process
+      logger.error(`Command exited with code ${status.code}`)
+      Deno.exit(status.code)
+    }
+  } finally {
+    // Always clean up signal handlers
+    cleanupSignalHandlers()
   }
 }
 
@@ -57,45 +183,69 @@ async function runCommand(scriptName: string): Promise<void> {
  * Display help message showing available commands
  */
 function displayHelp(): void {
-  console.log('Deno Kit - Usage:')
-  console.log(
-    '  deno run --allow-read --allow-write --allow-run --allow-env --allow-net template.ts [command]',
+  logger.helpTitle(
+    `${
+      KIT_NAME.split(' ').map((word) =>
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ')
+    } - Usage:`,
   )
-  console.log('\nCommands:')
-  console.log('  generate    Generate project files from templates (default)')
-  console.log('  reset       Restore files from backups')
-  console.log('  update      Update the Cursor configuration from GitHub')
-  console.log('  help        Display this help message')
-  console.log('  start       Start the development server')
-  console.log('  cli         Start the CLI interface')
-  console.log(
-    '\nIf no command is provided, the "help" command will be executed.',
+  logger.helpUsage(
+    `  ${KIT_NAME} [command] [options]`,
+  )
+
+  logger.helpSection('Commands:')
+
+  // Find the longest command name for proper padding
+  const maxCommandLength = Math.max(
+    ...Object.keys(COMMAND_MAP).map((cmd) => cmd.length),
+    4, // length of "help"
+  )
+
+  // Display all commands from COMMAND_MAP
+  for (const [command, config] of Object.entries(COMMAND_MAP)) {
+    logger.helpCommand(command, config.commandDescription, maxCommandLength)
+  }
+
+  // Display help command (handled locally)
+  logger.helpCommand('help', 'Display this help message', maxCommandLength)
+
+  logger.helpNote(
+    'If no command is provided, the "help" command will be executed.',
   )
 }
 
 /**
  * Main function that dispatches to the appropriate command handler
  */
-async function main(): Promise<void> {
-  // Get the command from arguments
-  const command = Deno.args[0]?.toLowerCase() || 'help'
+export async function main(): Promise<void> {
+  // Set up signal handlers for the main process
+  const cleanupSignalHandlers = setupSignalHandlers()
 
-  // Handle local commands first
-  if (command === 'help') {
+  try {
+    // Get the command from arguments
+    const command = Deno.args[0]?.toLowerCase() || 'help'
+
+    // Handle local commands first
+    if (command === 'help') {
+      displayHelp()
+      return
+    }
+
+    // Check if the command exists in our map
+    if (command in COMMAND_MAP) {
+      await runCommand(COMMAND_MAP[command].commandPath)
+      return
+    }
+
+    // Handle unknown commands
+    logger.error(`Unknown command: ${command}`)
     displayHelp()
-    return
+    Deno.exit(1)
+  } finally {
+    // Clean up signal handlers
+    cleanupSignalHandlers()
   }
-
-  // Check if the command exists in our map
-  if (command in COMMAND_MAP) {
-    await runCommand(COMMAND_MAP[command])
-    return
-  }
-
-  // Handle unknown commands
-  console.error(`❌ Unknown command: ${command}`)
-  displayHelp()
-  Deno.exit(1)
 }
 
 // Run the script if it's the main module
@@ -103,8 +253,8 @@ if (import.meta.main) {
   try {
     await main()
   } catch (error: unknown) {
-    console.error(
-      `❌ Error: ${error instanceof Error ? error.message : String(error)}`,
+    logger.error(
+      `Error: ${error instanceof Error ? error.message : String(error)}`,
     )
     Deno.exit(1)
   }

@@ -1,21 +1,11 @@
-import { Logger } from './logger.ts'
-import type {
-  CreateOptions,
-  CreateResult,
-  DestroyOptions,
-  DestroyResult,
-  LibConfig,
-  ReadOptions,
-  ReadResult,
-  UpdateOptions,
-  UpdateResult,
-} from './types.ts'
+import { Logger } from './core/logger.ts'
+import type { LibConfig, LibRequest, LibResult } from './types.ts'
 
-// Create a logger for the Lib class
-const libLogger = Logger.get('lib')
+// Default logger for you to use. Will print to the default OpenTelemetry sink.
+const logger = Logger.get('lib')
 
 /**
- * Lib class provides core CRUD functionality
+ * Lib class is a default starter library that is exported to a user.
  */
 class Lib {
   private config: LibConfig
@@ -26,7 +16,7 @@ class Lib {
    */
   constructor(config: LibConfig = {}) {
     this.config = config
-    libLogger.debug('Lib instance created', { config })
+    logger.debug('Lib instance created', { config })
   }
 
   /**
@@ -34,8 +24,8 @@ class Lib {
    * @param data The data to create
    * @returns The created data
    */
-  create(data: CreateOptions): CreateResult {
-    libLogger.info('Creating resource', { config: this.config, data })
+  create(data: LibRequest): LibResult {
+    logger.info('Creating resource', { config: this.config, data })
     return data
   }
 
@@ -44,8 +34,8 @@ class Lib {
    * @param query The query parameters
    * @returns The queried data
    */
-  read(query: ReadOptions): ReadResult {
-    libLogger.info('Reading resource', { config: this.config, query })
+  read(query: LibRequest): LibResult {
+    logger.info('Reading resource', { config: this.config, query })
     return query
   }
 
@@ -54,8 +44,8 @@ class Lib {
    * @param data The data to update
    * @returns The updated data
    */
-  update(data: UpdateOptions): UpdateResult {
-    libLogger.info('Updating resource', { config: this.config, data })
+  update(data: LibRequest): LibResult {
+    logger.info('Updating resource', { config: this.config, data })
     return data
   }
 
@@ -64,8 +54,8 @@ class Lib {
    * @param query The query parameters for deletion
    * @returns The deleted data
    */
-  destroy(query: DestroyOptions): DestroyResult {
-    libLogger.info('Destroying resource', { config: this.config, query })
+  destroy(query: LibRequest): LibResult {
+    logger.info('Destroying resource', { config: this.config, query })
     return query
   }
 }

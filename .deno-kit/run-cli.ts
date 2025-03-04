@@ -1,21 +1,29 @@
 #!/usr/bin/env -S deno run --allow-all
+
+/**
+ * @module run-cli
+ * @description Command-line interface for the Deno starter kit that helps developers test and interact with their library.
+ *
+ * The CLI provides an interactive interface to the core library functionality, making it easy
+ * to test and validate your package during development.
+ *
+ * @example
+ * ```bash
+ * # Get started with the CLI to explore available commands
+ * deno task kit cli help
+ * ```
+ *
+ * For full documentation on the starter kit and its features, see the README.md
+ */
+
 import { parseArgs } from '@std/cli'
 import { Lib } from '../src/lib.ts'
-import { Logger } from '../src/logger.ts'
-import { getPackageInfo } from '../src/utils.ts'
-import type {
-  CreateOptions,
-  CreateResult,
-  DestroyOptions,
-  DestroyResult,
-  ReadOptions,
-  ReadResult,
-  UpdateOptions,
-  UpdateResult,
-} from '../src/types.ts'
+import { Logger } from '../src/core/logger.ts'
+import { getPackageInfo } from './utils.ts'
+import type { LibRequest, LibResult } from '../src/types.ts'
 
 // Create a logger for the CLI
-const cliLogger = Logger.get('cli')
+const logger = Logger.get('cli')
 
 // Get package info from deno.jsonc
 const { name: NAME, version: VERSION } = getPackageInfo()
@@ -50,40 +58,39 @@ function parseArgsToObject(
  * Displays help menu
  */
 function showHelp(lib: Lib): void {
-  cliLogger.info(`${NAME} v${VERSION}`)
-  cliLogger.info('\nUsage:')
-  cliLogger.info('  cli.ts <command> [options]')
-  cliLogger.info('\nCommands:')
+  console.log(`\n${NAME} v${VERSION}`)
+  console.log('\nUsage:')
+  console.log('  deno task kit cli <command> [options]')
+  console.log('\nCommands:')
 
   // Get all methods from the Lib prototype that are not the constructor
   const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(lib))
     .filter((name) => name !== 'constructor')
 
   for (const method of methods) {
-    cliLogger.info(`  ${method} \t- Execute the ${method} operation`)
+    console.log(`  ${method} \t- Execute the ${method} operation`)
   }
 
-  cliLogger.info('\nOptions:')
-  cliLogger.info('  --help, -h \t- Display this help message')
-  cliLogger.info('  --version, -v \t- Display version information')
-  cliLogger.info('\nExample:')
-  cliLogger.info('  cli.ts read --first-name="John" --last-name="Doe"')
+  console.log('\nOptions:')
+  console.log('  --help, -h \t- Display this help message')
+  console.log('  --version, -v \t- Display version information')
+  console.log('\nExample:')
+  console.log('  cli.ts read --first-name="John" --last-name="Doe"\n')
 }
 
 /**
  * Displays version information
  */
 function showVersion(): void {
-  cliLogger.info(`${NAME} v${VERSION}`)
+  console.log(`${NAME} v${VERSION}`)
 }
 
 // Method map for typed execution
 const methodMap = {
-  create: (lib: Lib, params: CreateOptions): CreateResult => lib.create(params),
-  read: (lib: Lib, params: ReadOptions): ReadResult => lib.read(params),
-  update: (lib: Lib, params: UpdateOptions): UpdateResult => lib.update(params),
-  destroy: (lib: Lib, params: DestroyOptions): DestroyResult =>
-    lib.destroy(params),
+  create: (lib: Lib, params: LibRequest): LibResult => lib.create(params),
+  read: (lib: Lib, params: LibRequest): LibResult => lib.read(params),
+  update: (lib: Lib, params: LibRequest): LibResult => lib.update(params),
+  destroy: (lib: Lib, params: LibRequest): LibResult => lib.destroy(params),
 }
 
 type CommandType = keyof typeof methodMap
@@ -92,7 +99,7 @@ type CommandType = keyof typeof methodMap
  * Main CLI function. Parses arguments and executes commands against all top-level
  * methods in the package's exports (what your have set for publish.include in deno.jsonc).
  */
-function startCLI(): void {
+function runCLI(): void {
   const args = parseArgs(Deno.args, {
     boolean: ['help', 'version'],
     alias: { h: 'help', v: 'version' },
@@ -102,8 +109,8 @@ function startCLI(): void {
   // Initialize our lib with empty config
   const lib = new Lib()
 
-  // Handle help and version flags
-  if (args.help) {
+  // Handle help and version flags first
+  if (args.help || args._[0] === 'help') {
     showHelp(lib)
     return
   }
@@ -121,52 +128,64 @@ function startCLI(): void {
 
   // Interactive mode if no command provided
   if (args._.length === 0) {
-    cliLogger.info(`${NAME} v${VERSION} - Interactive Mode`)
-    cliLogger.info('Available commands:')
+    console.log(`\n${NAME} v${VERSION} - Interactive Mode`)
+    console.log('\nAvailable commands:')
     for (const cmd of availableCommands) {
-      cliLogger.info(`  - ${cmd}`)
+      console.log(`  - ${cmd}`)
     }
-    cliLogger.info('\nRun with a command or use --help for more information')
+    console.log('\nRun with a command or use --help for more information\n')
     return
   }
 
   // Handle command from arguments
   const command = String(args._[0])
 
-  if (!availableCommands.includes(command)) {
-    cliLogger.error(`Unknown command '${command}'`)
-    cliLogger.error('Run with --help to see available commands')
-    Deno.exit(1)
+  // Find the first command that matches a key in methodMap
+  const commandIndex = args._.findIndex((arg) =>
+    typeof arg === 'string' && arg in methodMap
+  )
+
+  if (commandIndex >= 0) {
+    // Remove all items before the matching command
+    args._ = args._.slice(commandIndex)
   }
 
+  if (!availableCommands.includes(command)) {
+    console.error(`Unknown command '${command}'`)
+    console.error('Run with --help to see available commands')
+    Deno.exit(1)
+  }
+  console.log(`CLI received command: ${command} with parameters:`, args)
   // Parse remaining args into an object
   const parsedArgs = parseArgsToObject(args)
-  cliLogger.debug(`Executing ${command} with parameters`, {
-    params: parsedArgs,
-  })
 
   // Execute the command if it's in our method map
   try {
     if (command in methodMap) {
       const result = methodMap[command as CommandType](lib, parsedArgs)
-      cliLogger.info(JSON.stringify(result, null, 2))
+      console.log(JSON.stringify(parsedArgs, null, 2))
+      console.log('\nResponse:')
+      console.log(JSON.stringify(result, null, 2))
+      console.log()
     } else {
       throw new Error(
         `Command ${command} is not implemented in the method map`,
       )
     }
   } catch (error) {
-    cliLogger.error(
-      `Error executing ${command}:`,
-      { error: error instanceof Error ? error : new Error(String(error)) },
-    )
+    // For CLI errors, write directly to stderr
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(`Error executing ${command}: ${errorMessage}`)
+    if (error instanceof Error && error.stack) {
+      console.error(error.stack)
+    }
     Deno.exit(1)
   }
 }
 
 if (import.meta.main) {
-  startCLI()
+  runCLI()
 }
 
 // Export all functions at the bottom of the file
-export { kebabToCamelCase, parseArgsToObject, startCLI }
+export { kebabToCamelCase, parseArgsToObject, runCLI }
