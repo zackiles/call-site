@@ -3,6 +3,7 @@
 .temp
 .cache
 .env
+.deno-kit/templates/*.backup
 
 .vscode-test
 .DS_Store
