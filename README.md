@@ -8,7 +8,7 @@ A modern, AI-Native, Deno 2 library starter kit with with CLI, HTTP, and WebSock
 
 ## Getting Started
 
-If you just cloned this starter kit, run `deno task kit generate`. It'll prompt you for various values to setup the repo and automatically configure it for you. It even uses default values retrieved from git to make it easy for you. If you make a mistake and want to reset you can run `deno task kit reset`.
+If you just cloned this starter kit, run `deno task kit setup`. It'll prompt you for various values to setup the repo and automatically configure it for you. It even uses default values retrieved from git to make it easy for you. If you make a mistake and want to reset you can run `deno task kit reset`.
 
 🎉 **That's it!** You'll have a complete working directory and library and package, and no longer need to use `deno-kit`, if you want, you can even remove the `.deno-kit` folder. Now explore the rest of the tasks in `deno.jsonc` and being development! Once you're ready to publish your library run `deno publish`.
 
@@ -25,12 +25,12 @@ If you just cloned this starter kit, run `deno task kit generate`. It'll prompt 
 {PACKAGE_AUTHOR_NAME}: Defaults to "git config user.name"
 {PACKAGE_AUTHOR_EMAIL}: Defaults to "git config user.email"
 
-// Running "deno task kit generate" will replace them.
+// Running "deno task kit setup" will replace them.
 ```
 
 ## Features
 
-🚀 **Guided Setup:** Quickly generate your next package with guided setup and intelligent defaults.
+🚀 **Guided Setup:** Quickly setup your next package with guided setup and intelligent defaults.
 
 🦖 **Modern Deno 2 Features:** Using the latest Deno 2 APIs and practices such as OpenTelemetry.
 
@@ -69,7 +69,7 @@ git clone https://github.com/your-username/your-project-name.git
 cd your-project-name
 ```
 
-3. Run the template generator: `deno task kit generate`. Deno-kit will walk you through configuring your library using the templates in `.deno-kit/templates/`.
+3. Run the template generator: `deno task kit setup`. Deno-kit will walk you through configuring your library using the templates in `.deno-kit/templates/`.
 
 ## License
 

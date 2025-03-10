@@ -1,7 +1,7 @@
 # "{PACKAGE_SCOPE}/{PACKAGE_NAME}"
 
-[![JSR Score](https://jsr.io/badges/{PACKAGE_NAME}/score)](https://jsr.io/{PACKAGE_NAME})
-[![JSR](https://jsr.io/badges/{PACKAGE_NAME})](https://jsr.io/{PACKAGE_NAME})
+[![JSR Score](https://jsr.io/badges/{PACKAGE_SCOPE}/{PACKAGE_NAME}/score)](https://jsr.io/{PACKAGE_SCOPE}/{PACKAGE_NAME})
+[![JSR](https://jsr.io/badges/{PACKAGE_SCOPE}/{PACKAGE_NAME})](https://jsr.io/{PACKAGE_SCOPE}/{PACKAGE_NAME})
 [![JSR Scope](https://jsr.io/badges/{PACKAGE_SCOPE})](https://jsr.io/{PACKAGE_SCOPE})
 
 {PACKAGE_DESCRIPTION}
@@ -36,13 +36,13 @@ TypeScript coverage.
 
 ```bash
 # Install from JSR registry
-deno add {PACKAGE_NAME}
+deno add {PACKAGE_SCOPE}/{PACKAGE_NAME}
 ```
 
 ## Core Library Usage
 
 ```typescript
-import { type CreateOptions, Lib, type ReadOptions } from "{PACKAGE_NAME}";
+import { type CreateOptions, Lib, type ReadOptions } from "{PACKAGE_SCOPE}/{PACKAGE_NAME}";
 
 // Create a new instance with custom config
 const lib = new Lib({ apiKey: "your-api-key" });

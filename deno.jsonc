@@ -11,16 +11,8 @@
     "url": "https://github.com/zackiles/deno-kit.git"
   },
   "tasks": {
-    "server": "deno run --allow-env --allow-net scripts/server.ts",
-    "server:dev": "deno run --allow-all --watch scripts/server.ts",
-    "server:telemetry": "OTEL_DENO=true deno run --allow-all scripts/server.ts",
-    "cli": "deno run --allow-env --allow-read scripts/cli.ts",
-    "cli:dev": "deno run --allow-all --watch scripts/cli.ts",
-    "cli:telemetry": "OTEL_DENO=true deno run --allow-all scripts/cli.ts",
-    "test": "deno test --allow-all",
-    "test:telemetry": "OTEL_DENO=true deno test --allow-all",
-    "prepare": "deno fmt && deno lint",
-    "kit": "deno run --allow-all ./.deno-kit/main.ts"
+    "kit:help": "deno run -A ./.deno-kit/main.ts --help",
+    "kit:setup": "deno run -A ./.deno-kit/main.ts setup"
   },
   // Import maps. Prefer import "@scope/package" syntax in code.
   "imports": {
