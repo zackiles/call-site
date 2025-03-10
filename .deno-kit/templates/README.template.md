@@ -1,4 +1,4 @@
-# "{PACKAGE_NAME}"
+# "{PACKAGE_SCOPE}/{PACKAGE_NAME}"
 
 [![JSR Score](https://jsr.io/badges/{PACKAGE_NAME}/score)](https://jsr.io/{PACKAGE_NAME})
 [![JSR](https://jsr.io/badges/{PACKAGE_NAME})](https://jsr.io/{PACKAGE_NAME})

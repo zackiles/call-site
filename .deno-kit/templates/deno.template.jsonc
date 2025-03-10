@@ -2,7 +2,7 @@
   // Schema deno.jsonc: @https://github.com/denoland/deno/blob/main/cli/schemas/config-file.v1.json
   "name": "{PACKAGE_NAME}",
   "version": "{PACKAGE_VERSION}",
-  "description": "A modern Deno 2 library starter kit",
+  "description": "{PACKAGE_DESCRIPTION}",
   "license": "MIT",
   "author": "{PACKAGE_AUTHOR_NAME} <{PACKAGE_AUTHOR_EMAIL}>",
   "homepage": "https://github.com/{PACKAGE_GITHUB_USER}/{PROJECT_NAME}",
@@ -25,6 +25,7 @@
   // Import maps. Prefer import "@scope/package" syntax in code.
   "imports": {
     // Most of these are needed for deno-kit, be careful removing them.
+    // <@deno-kit IMPORTS START>
     "@opentelemetry/api": "npm:@opentelemetry/api@1",
     "@opentelemetry/api-logs": "npm:@opentelemetry/api-logs@0",
     "@opentelemetry/sdk-logs": "npm:@opentelemetry/sdk-logs@0",
@@ -39,7 +40,9 @@
     "@std/cli": "jsr:@std/cli@1",
     "@std/jsonc": "jsr:@std/jsonc@1",
     "@std/net": "jsr:@std/net@1",
-    "@std/testing": "jsr:@std/testing@1"
+    "@std/testing": "jsr:@std/testing@1",
+    "@deno-kit/module-to-cli": "jsr:@deno-kit/module-to-cli@0"
+    // <@deno-kit IMPORTS END>
   },
   "unstable": [
     "kv",
@@ -64,14 +67,18 @@
     "singleQuote": true,
     "proseWrap": "preserve",
     "include": [
-      "src/",
-      "test/",
+      "src/**",
+      "test/**",
       "README.md",
       "CONTRIBUTING.md"
     ],
     "exclude": [
-      ".deno-kit/",
-      "!fixtures"
+      "docs/**",
+      ".vscode/**",
+      ".cursor/**",
+      ".deno-kit/**",
+      "test/mocks/**",
+      "test/fixtures/**"
     ]
   },
   // Schema for lint rules: @https://github.com/denoland/deno/blob/main/cli/schemas/lint-rules.v1.json
@@ -83,23 +90,28 @@
         "recommended"
       ],
       "exclude": [
-        // LLMs don't play well with this rule.
-        "no-explicit-any"
+        // LLMs don't play well with this rule, you should patch them manually.
+        "require-await"
       ]
     },
     "include": [
-      "src/",
-      "test/"
+      "src/**",
+      "test/**",
+      "README.md",
+      "CONTRIBUTING.md"
     ],
     "exclude": [
+      "docs/**",
+      ".cursor/**",
       ".deno-kit/**",
-      "!fixtures"
+      "test/mocks/**",
+      "test/fixtures/**"
     ],
     "report": "pretty"
   },
   "test": {
     "include": [
-      "test/**/*.ts"
+      "test/**/*.test.ts"
     ]
   },
   // See Configuring Typescript in Deno: @https://docs.deno.com/runtime/fundamentals/configuration/
@@ -115,16 +127,18 @@
   // See jsr publishing: @https://docs.deno.com/runtime/reference/cli/publish/
   "publish": {
     "include": [
+      "bin/**",
       "src/**/*.ts",
       "README.md",
       "LICENSE"
     ],
     "exclude": [
-      "**/*.test.ts",
-      "**/__tests__/**",
-      "test/**",
-      "fixtures/**",
-      ".deno-kit/**"
+      "docs/**",
+      ".vscode/**",
+      ".cursor/**",
+      ".deno-kit/**",
+      "test/mocks/**",
+      "test/fixtures/**"
     ]
   },
   // The main entry point for the library to be published

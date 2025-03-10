@@ -1,4 +1,4 @@
 docs
 deno.lock
-.vscode
+.vscode/**
 .cursor

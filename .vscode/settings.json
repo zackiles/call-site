@@ -29,20 +29,15 @@
   "editor.indentSize": 2,
   "editor.insertSpaces": true,
   "editor.formatOnSave": true,
-  "[json]": {
+  "[json][jsonc]": {
     "editor.defaultFormatter": "vscode.json-language-features"
   },
-  "[jsonc]": {
-    "editor.defaultFormatter": "vscode.json-language-features"
-  },
-  "[javascript]": {
+  "[markdown][typescript][javascript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
   },
-  "[typescript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
-  },
-  "[markdown]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+  "search.exclude": {
+    "**/.cursor": true,
+    "**/.deno-kit": true
   },
   "cSpell.dictionaries": [
     "!typescript"

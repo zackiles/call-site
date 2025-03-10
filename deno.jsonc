@@ -1,14 +1,14 @@
 {
   // Schema deno.jsonc: @https://github.com/denoland/deno/blob/main/cli/schemas/config-file.v1.json
-  "name": "@bigboy/bigtoys",
-  "version": "0.0.2",
-  "description": "A modern Deno 2 library starter kit",
+  "name": "@zackiles/deno-kit",
+  "version": "0.0.5",
+  "description": "Modern Deno 2 library starter kit",
   "license": "MIT",
-  "author": "Zachary Iles <zachary.iles@nesto.ca>",
-  "homepage": "https://github.com/zackiles/bigtoys",
+  "author": "Zachary Iles <{zack.iles@gmail.com}>",
+  "homepage": "https://github.com/zackiles/deno-kit",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zackiles/bigtoys.git"
+    "url": "https://github.com/zackiles/deno-kit.git"
   },
   "tasks": {
     "server": "deno run --allow-env --allow-net scripts/server.ts",
@@ -20,7 +20,7 @@
     "test": "deno test --allow-all",
     "test:telemetry": "OTEL_DENO=true deno test --allow-all",
     "prepare": "deno fmt && deno lint",
-    "kit": "deno run --allow-all .deno-kit/main.ts"
+    "kit": "deno run --allow-all ./.deno-kit/main.ts"
   },
   // Import maps. Prefer import "@scope/package" syntax in code.
   "imports": {
@@ -30,7 +30,7 @@
     "@opentelemetry/sdk-trace-base": "npm:@opentelemetry/sdk-trace-base@1",
     "@opentelemetry/resources": "npm:@opentelemetry/resources@1",
     "@opentelemetry/semantic-conventions": "npm:@opentelemetry/semantic-conventions@1",
-    "@std/fmt": "jsr:@std/fmt@^1.0.5",
+    "@std/fmt": "jsr:@std/fmt@1",
     "@std/fs": "jsr:@std/fs@1",
     "@std/dotenv": "jsr:@std/dotenv@0",
     "@std/path": "jsr:@std/path@1",
@@ -69,21 +69,20 @@
       "CONTRIBUTING.md"
     ],
     "exclude": [
-      ".deno-kit/",
+      ".deno-kit/**",
       "!fixtures"
     ]
   },
   // Schema for lint rules: @https://github.com/denoland/deno/blob/main/cli/schemas/lint-rules.v1.json
   "lint": {
-    "enabled": true,
     "rules": {
       // Possible tags: "fresh", "jsr", "jsx", "react", "recommended"
       "tags": [
         "recommended"
       ],
       "exclude": [
-        // LLMs don't play well with this rule.
-        "no-explicit-any"
+        // LLMs don't play well with require-await.
+        "require-await"
       ]
     },
     "include": [
@@ -91,6 +90,7 @@
       "test/"
     ],
     "exclude": [
+      // o-kit CLI
       ".deno-kit/**",
       "!fixtures"
     ],

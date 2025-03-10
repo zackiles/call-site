@@ -7,7 +7,7 @@ import { getConfig } from './config.ts'
 const config = await getConfig()
 
 /**
- * Restores all backup files to their original locations
+ * Restores all backup files to their original locations and then removes the backup files
  */
 async function reset(): Promise<void> {
   console.log('🔄 Restoring backup files...')
@@ -27,6 +27,7 @@ async function reset(): Promise<void> {
     // Get all files in the templates directory
     const templateFiles = await Deno.readDir(config.templatesDir)
     let restoredCount = 0
+    const backupFiles: string[] = []
 
     // Process each file
     for await (const entry of templateFiles) {
@@ -41,6 +42,7 @@ async function reset(): Promise<void> {
           await Deno.copyFile(backupPath, targetPath)
           console.log(`✅ Restored ${targetPath} from ${backupPath}`)
           restoredCount++
+          backupFiles.push(backupPath)
         } catch (error) {
           console.error(`❌ Failed to restore ${targetPath}:`, error)
         }
@@ -51,6 +53,22 @@ async function reset(): Promise<void> {
       console.log('❓ No backup files found to restore.')
     } else {
       console.log(`🎉 Restored ${restoredCount} file(s) from backups.`)
+      
+      // Remove backup files after successful restoration
+      console.log('🧹 Removing backup files...')
+      let removedCount = 0
+      
+      for (const backupFile of backupFiles) {
+        try {
+          await Deno.remove(backupFile)
+          console.log(`🗑️ Removed ${backupFile}`)
+          removedCount++
+        } catch (error) {
+          console.error(`❌ Failed to remove ${backupFile}:`, error)
+        }
+      }
+      
+      console.log(`🎉 Removed ${removedCount} backup file(s).`)
     }
   } catch (error) {
     console.error('❌ Error restoring backup files:', error)
@@ -63,4 +81,4 @@ if (import.meta.main) {
 }
 
 // Export the function at the bottom of the file
-export { reset }
+export { reset } 

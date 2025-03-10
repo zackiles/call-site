@@ -3,49 +3,26 @@
  *
  * Tests for the CLI functionality provided by `.deno-kit/run-cli.ts`.
  * This module verifies that the command-line interface correctly interacts
- * with the library in `src/` through utility functions and command processing.
+ * with the library in `src/` through the @deno-kit/module-to-cli integration.
+ *
+ * The CLI now uses the @deno-kit/module-to-cli library which automatically
+ * generates a CLI based on the exported module. This removes the need for
+ * manual parameter conversion and command processing tests.
  *
  * Key test areas:
- * - Parameter conversion (kebab-case to camelCase)
- * - CLI argument parsing
  * - Integration with library methods
  * - Command availability and structure
  *
- * @note If you modify the library's API in `src/`, you'll need to update these tests
- * to match your new API structure, particularly:
- * - The expected method names in the Lib class integration test
- * - Any new parameter conversion cases
- * - Command structure validations
+ * @note If you modify the library's API in `src/`, the CLI will automatically
+ * adapt to your new API structure since it's dynamically generated.
  */
 
 import { assertEquals } from '@std/assert'
 import { describe, it } from '@std/testing/bdd'
 import { Lib } from '../src/lib.ts'
-import { kebabToCamelCase, parseArgsToObject } from '../.deno-kit/run-cli.ts'
+import { runCLI } from '../.deno-kit/run-cli.ts'
 
-describe('CLI utils', () => {
-  it('should convert kebab-case to camelCase', () => {
-    assertEquals(kebabToCamelCase('first-name'), 'firstName')
-    assertEquals(kebabToCamelCase('last-name'), 'lastName')
-    assertEquals(kebabToCamelCase('user-id'), 'userId')
-    assertEquals(kebabToCamelCase('include-details'), 'includeDetails')
-  })
-
-  it('should parse CLI args to object', () => {
-    const args = {
-      _: ['read'],
-      'first-name': 'John',
-      'last-name': 'Doe',
-      'include-details': true,
-    }
-
-    const result = parseArgsToObject(args)
-
-    assertEquals(result.firstName, 'John')
-    assertEquals(result.lastName, 'Doe')
-    assertEquals(result.includeDetails, true)
-  })
-
+describe('CLI integration', () => {
   it('should integrate with Lib class methods', () => {
     // Create a test instance of Lib
     const lib = new Lib()
@@ -59,5 +36,11 @@ describe('CLI utils', () => {
     assertEquals(methods.includes('read'), true)
     assertEquals(methods.includes('update'), true)
     assertEquals(methods.includes('destroy'), true)
+  })
+
+  // The runCLI function should exist but we don't test its implementation
+  // as it's now a thin wrapper around @deno-kit/module-to-cli
+  it('should export runCLI function', () => {
+    assertEquals(typeof runCLI, 'function')
   })
 })
