@@ -12,7 +12,7 @@
   },
   "tasks": {
     "kit:help": "deno run -A ./.deno-kit/main.ts --help",
-    "kit:setup": "deno run -A ./.deno-kit/main.ts setup"
+    "kit": "deno run -A ./.deno-kit/main.ts"
   },
   // Import maps. Prefer import "@scope/package" syntax in code.
   "imports": {
