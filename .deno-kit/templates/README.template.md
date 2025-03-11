@@ -1,76 +1,46 @@
-# "{PACKAGE_SCOPE}/{PACKAGE_NAME}"
+# "{PACKAGE_NAME}"
 
-[![JSR Score](https://jsr.io/badges/{PACKAGE_SCOPE}/{PACKAGE_NAME}/score)](https://jsr.io/{PACKAGE_SCOPE}/{PACKAGE_NAME})
-[![JSR](https://jsr.io/badges/{PACKAGE_SCOPE}/{PACKAGE_NAME})](https://jsr.io/{PACKAGE_SCOPE}/{PACKAGE_NAME})
+[![JSR Score](https://jsr.io/badges/{PACKAGE_NAME}/score)](https://jsr.io/{PACKAGE_NAME})
+[![JSR](https://jsr.io/badges/{PACKAGE_SCOPE}/1. Clone this repository)](https://jsr.io/{PACKAGE_NAME})
 [![JSR Scope](https://jsr.io/badges/{PACKAGE_SCOPE})](https://jsr.io/{PACKAGE_SCOPE})
 
 {PACKAGE_DESCRIPTION}
 
+> [!NOTE]  
+> This is a **new** project and the documentation is unlikely to be comprehensive or accurate.
+
 ## Features
 
-🚀 **Guided Setup:** Quickly generate your next package with guided setup and
-intelligent defaults. 🦖 **Modern Deno 2 Features:** Using the latest Deno 2
-APIs and practices such as OpenTelemetry. 🤖 **AI-Native:** Includes a complete
-set of Deno-optimized AI triggers and meta prompts in `.cursor/rules` to
-jump-start your project. 🔒 **Safe Defaults:** Achieve a 100%
-[JSR score](https://jsr.io/docs/scoring) with safe defaults and comprehensive
-TypeScript coverage.
+- 🦖 **Modern Deno 2 Features:** Using the latest Deno 2
+- ...
 
-### Prerequisites
+## Getting Started
 
-- [Deno](https://deno.com/) v2.0 or newer
-- **Note:** if you're building a browser-based library you will have to add
-  additional libraries to `compilerOptions.lib` in `deno.jsonc` such as `dom`.
-  For more info see:
-  [DenoDocs - CompilerOptions](https://docs.deno.com/runtime/reference/ts_config_migration/)
+1. Install {PACKAGE_NAME}:
 
-### Installation
+   ```sh
+   deno add {PACKAGE_NAME}
+   ```
 
-#### For Development and Testing
+2. Import and use it:
 
-1. Clone this repository
-2. Install dependencies: `deno install`
-3. Run one of the deno tasks listed in "Development Scripts"
+   ```typescript
+   import { Lib } from '{PACKAGE_NAME}'
+   import type { LibConfig, LibRequest, LibResponse } from '{PACKAGE_NAME}'
 
-#### For Production Use
+   const config: LibConfig = {user: 'world'}
+   const lib = new Lib(config)
 
-```bash
-# Install from JSR registry
-deno add {PACKAGE_SCOPE}/{PACKAGE_NAME}
-```
+   const data: LibRequest = {message: 'hello'}
+   const response: LibResponse = await lib.read(data)
+   
+   console.log(response)
+   ```
 
-## Core Library Usage
+## **Changelog**
 
-```typescript
-import { type CreateOptions, Lib, type ReadOptions } from "{PACKAGE_SCOPE}/{PACKAGE_NAME}";
+See the [`CHANGELOG`](CHANGELOG.md) file for details.
 
-// Create a new instance with custom config
-const lib = new Lib({ apiKey: "your-api-key" });
+## **License**
 
-// Create operation with strongly-typed parameters
-const createData: CreateOptions = { name: "Test Item", value: 123 };
-const result = lib.create(createData);
-console.log(result);
-
-// Read operation
-const readParams: ReadOptions = { id: 123 };
-const item = lib.read(readParams);
-```
-
-## Available Types
-
-The library exports the following TypeScript interfaces:
-
-- `LibConfig` - Configuration for the Lib constructor
-- `CreateOptions` - Options for the create method
-- `CreateResult` - Return type for the create method
-- `ReadOptions` - Options for the read method
-- `ReadResult` - Return type for the read method
-- `UpdateOptions` - Options for the update method
-- `UpdateResult` - Return type for the update method
-- `DestroyOptions` - Options for the destroy method
-- `DestroyResult` - Return type for the destroy method
-
-## License
-
-MIT
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT) — see the [`LICENSE`](LICENSE) file for details.

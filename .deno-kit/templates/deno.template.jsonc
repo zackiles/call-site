@@ -13,8 +13,7 @@
   "tasks": {
     "test": "deno test --allow-all",
     "pre-publish": "deno fmt && deno check -r src/ && deno lint",
-    "kit:server:telemetry": "OTEL_DENO=true deno run -A .deno-kit/main.ts server",
-    "kit:cli:telemetry": "OTEL_DENO=true deno run -A .deno-kit/main.ts cli",
+    "kit:telemetry": "OTEL_DENO=true deno run -A .deno-kit/main.ts",
     "kit": "deno run -A .deno-kit/main.ts"
   },
   // Import maps. Prefer import "@scope/package" syntax in code.

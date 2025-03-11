@@ -15,17 +15,17 @@ you wish to write.
 
 ```bash
 # Show help
-deno task cli -- --help
+deno task kit cli --help
 
-# Execute a CLI method that calls your library methods:
-deno task cli -- read --id=123 --include-details=true
+# Execute a CLI method named "read" that calls your library methods:
+deno task kit cli read --id=123
 ```
 
 ### HTTP API
 
 ```bash
 # Start the HTTP server
-deno task start
+deno task kit server
 
 # After starting the server, make requests to the methods of your library (Curl, Fetch etc):
 GET {DENO_KIT_HOST}:{DENO_KIT_PORT}/lib/read?id=123
@@ -49,18 +49,6 @@ ws.onopen = () => {
 };
 ```
 
-## Deno Tasks
-
-- `deno task server` - Start the HTTP/WebSocket server
-- `deno task server:dev` - Start the server in development mode (watch for
-  changes)
-- `deno task cli` - Run the CLI interface
-- `deno task cli:dev` - Run the CLI in development mode
-- `deno task test` - Run the tests
-- `deno task fmt` - Format the code
-- `deno task lint` - Lint the code
-- `deno task publish` - Publish your library to JSR
-
 ## Extending
 
 To extend this starter kit:
@@ -68,11 +56,10 @@ To extend this starter kit:
 1. Add new methods to the `Lib` class in `src/lib.ts`
 2. If you created any types for your users export them in `src/mod.ts`
 3. Write any tests in `test/`
-4. (Optional): Publish to JSR with `deno task publish`
 
 ## Environment Variables
 
-This library supports various environment variables for configuration:
+This library supports various environment variables. You can copy the `.env.example` file to `.env` and customize them as needed.
 
 ### General Configuration
 
@@ -117,6 +104,3 @@ This library supports various environment variables for configuration:
 - `OTEL_SPAN_EVENT_COUNT_LIMIT` - Maximum number of events per span
 - `OTEL_SPAN_LINK_COUNT_LIMIT` - Maximum number of links per span
 - `OTEL_TRACES_SAMPLER` - Sampling strategy
-
-You can copy the `.env.example` file to `.env` and customize these variables for
-your environment.
